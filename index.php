@@ -1,3 +1,4 @@
+<!-- index.php -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -38,7 +39,7 @@
     <header class="bg-light text-center py-5">
         <h1>Privatbank Mustermann</h1>
         <p class="lead">Die Privatbank für Ihre Finanzen, jetzt kostenlose Girokonten mit vielen Extras.</p>
-        <a href="/php/registrierung.php" class="btn btn-primary">Registrierung starten</a>
+        <a href="php/registrierung.php" class="btn btn-primary">Registrierung starten</a>
     </header>
 
     <main class="container mt-5">
@@ -61,7 +62,7 @@
             <div class="col-md-3">
                 <h2>Börsenspiel</h2>
                 <p>Erleben Sie den Aktienhandel spielerisch.</p>
-                <a href="/php/registrierung.php" class="btn btn-warning">Jetzt starten</a>
+                <a href="php/registrierung.php" class="btn btn-warning">Jetzt starten</a>
             </div>
         </div>
     </main>

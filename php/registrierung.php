@@ -1,5 +1,4 @@
-
-<!-- registrierung.html -->
+<!-- registrierung.php -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrierung</title>
     <link rel="stylesheet" href="Sieper.css">
-    <script src="/js/registrierung.js" defer></script>
+    <script src="../js/registrierung.js" defer></script>
 </head>
 <body>
     <header>
