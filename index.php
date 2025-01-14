@@ -61,7 +61,7 @@
             <div class="col-md-3">
                 <h2>Börsenspiel</h2>
                 <p>Erleben Sie den Aktienhandel spielerisch.</p>
-                <a href="registrierung.php" class="btn btn-warning">Jetzt starten</a>
+                <a href="\php\registrierung.php" class="btn btn-warning">Jetzt starten</a>
             </div>
         </div>
     </main>
