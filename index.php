@@ -38,7 +38,7 @@
     <header class="bg-light text-center py-5">
         <h1>Privatbank Mustermann</h1>
         <p class="lead">Die Privatbank für Ihre Finanzen, jetzt kostenlose Girokonten mit vielen Extras.</p>
-        <a href="registrierung.php" class="btn btn-primary">Registrierung starten</a>
+        <a href="\php\registrierung.php" class="btn btn-primary">Registrierung starten</a>
     </header>
 
     <main class="container mt-5">
