@@ -6,7 +6,7 @@ session_start();
 $dbHost = 'localhost';
 $dbUser = 'root';
 $dbPass = '';
-$dbName = 'deine_datenbank';
+$dbName = 'webdatabase';
 
 $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
 
