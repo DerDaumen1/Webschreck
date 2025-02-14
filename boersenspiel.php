@@ -1,19 +1,21 @@
 <?php
 session_start();
-//Test
+
 // Prüfen, ob eingeloggt
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     header('Location: registrierung.php');
     exit;
 }
 
-// Standardwerte
-if (!isset($_SESSION['spielgeld'])) {
-    $_SESSION['spielgeld'] = 50000;
-}
-if (!isset($_SESSION['anzahl_aktien'])) {
-    $_SESSION['anzahl_aktien'] = 0;
-}
+// Die folgenden Zeilen entfernen wir, damit wir nicht mehr hart 50.000 / 0 setzen:
+// if (!isset($_SESSION['spielgeld'])) {
+//     $_SESSION['spielgeld'] = 50000;
+// }
+// if (!isset($_SESSION['anzahl_aktien'])) {
+//     $_SESSION['anzahl_aktien'] = 0;
+// }
+
+// Ab hier nur noch HTML-Struktur
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -22,7 +24,7 @@ if (!isset($_SESSION['anzahl_aktien'])) {
   <title>Börsenspiel (AJAX-Version mit ausgelagertem JS)</title>
   <!-- Externe CSS-Datei -->
   <link rel="stylesheet" href="styles.css">
-  
+
   <!-- Meta-Viewport für Responsive Design -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -56,11 +58,15 @@ if (!isset($_SESSION['anzahl_aktien'])) {
     <ul class="info-list">
       <li>
         <strong>Aktuelles Spielgeld:</strong>
-        <span id="spielgeldDisplay">50000.00</span> €
+        <span id="spielgeldDisplay">
+  <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?>
+</span> €
       </li>
       <li>
         <strong>Anzahl Aktien im Depot:</strong>
-        <span id="aktienDepotDisplay">0</span>
+        <span id="aktienDepotDisplay">
+  <?php echo $_SESSION['anzahl_aktien']; ?>
+</span>
       </li>
       <li>
         <strong>Aktueller Gewinn/Verlust:</strong>

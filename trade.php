@@ -1,18 +1,25 @@
 <?php
 session_start();
 
-// Optional: Nur fortfahren, wenn eingeloggt
+// Nur fortfahren, wenn eingeloggt
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-    echo json_encode(["error" => "Nicht eingeloggt!"]);
+    echo json_encode(["success" => false, "message" => "Nicht eingeloggt!"]);
     exit;
 }
 
-// Standardwerte
-if (!isset($_SESSION['spielgeld'])) {
-    $_SESSION['spielgeld'] = 50000;
+// Prüfen, ob wir überhaupt wissen, welcher Benutzer es ist
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(["success" => false, "message" => "Fehlende user_id in Session!"]);
+    exit;
 }
-if (!isset($_SESSION['anzahl_aktien'])) {
-    $_SESSION['anzahl_aktien'] = 0;
+
+// DB-Verbindung (Beispiel mit PDO)
+try {
+    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "message" => "DB-Verbindung fehlgeschlagen: " . $e->getMessage()]);
+    exit;
 }
 
 // POST-Daten
@@ -21,6 +28,7 @@ $anzahl    = (int)($_POST['anzahl'] ?? 0);
 $briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
 $geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
 
+// Hilfsfunktion zur Orderprovision
 function berechneProvision($orderwert) {
     $p = 4.95 + ($orderwert * 0.0025);
     if ($p < 9.99)  $p = 9.99;
@@ -28,20 +36,24 @@ function berechneProvision($orderwert) {
     return $p;
 }
 
+// Basis-Response
 $response = [
     "success" => false,
     "message" => "",
-    "spielgeld" => $_SESSION['spielgeld'],
-    "anzahl_aktien" => $_SESSION['anzahl_aktien']
+    "spielgeld"     => $_SESSION['spielgeld'],      // aus Session
+    "anzahl_aktien" => $_SESSION['anzahl_aktien']   // aus Session
 ];
 
+// Kauf/Verkauf/Beenden
 if ($typ === 'kaufen' && $anzahl > 0) {
     $orderwert = $anzahl * $briefkurs;
-    $prov = berechneProvision($orderwert);
-    $gesamt = $orderwert + $prov;
+    $provision = berechneProvision($orderwert);
+    $gesamt    = $orderwert + $provision;
+
     if ($gesamt <= $_SESSION['spielgeld']) {
-        $_SESSION['spielgeld'] -= $gesamt;
+        $_SESSION['spielgeld']     -= $gesamt;
         $_SESSION['anzahl_aktien'] += $anzahl;
+
         $response["success"] = true;
         $response["message"] = "Kauf erfolgreich! ($anzahl Aktien)";
     } else {
@@ -51,11 +63,13 @@ if ($typ === 'kaufen' && $anzahl > 0) {
 elseif ($typ === 'verkaufen' && $anzahl > 0) {
     if ($anzahl <= $_SESSION['anzahl_aktien']) {
         $orderwert = $anzahl * $geldkurs;
-        $prov = berechneProvision($orderwert);
-        $erlös = $orderwert - $prov;
+        $provision = berechneProvision($orderwert);
+        $erlös     = $orderwert - $provision;
         if ($erlös < 0) $erlös = 0;
-        $_SESSION['spielgeld'] += $erlös;
+
+        $_SESSION['spielgeld']     += $erlös;
         $_SESSION['anzahl_aktien'] -= $anzahl;
+
         $response["success"] = true;
         $response["message"] = "Verkauf erfolgreich! ($anzahl Aktien)";
     } else {
@@ -72,8 +86,29 @@ else {
     $response["message"] = "Ungültige Aktion!";
 }
 
-// Aktuelle Werte zurückgeben
-$response["spielgeld"] = $_SESSION['spielgeld'];
+// Wenn Erfolg oder nicht – Session ist jetzt ggf. aktualisiert.
+// => Speichere neue Werte in DB, damit es dauerhaft bleibt.
+try {
+    $update = $pdo->prepare("
+        UPDATE users
+        SET spielgeld = :sg, anzahl_aktien = :aktien
+        WHERE id = :id
+    ");
+    $update->execute([
+        'sg'     => $_SESSION['spielgeld'],
+        'aktien' => $_SESSION['anzahl_aktien'],
+        'id'     => $_SESSION['user_id']
+    ]);
+} catch (PDOException $e) {
+    // Falls das Update fehlschlägt, bleibt Session zwar geändert,
+    // aber DB ist evtl. veraltet. 
+    // Du kannst hier eine Fehlermeldung ausgeben oder loggen.
+    $response["message"] .= " (DB-Update-Fehler: " . $e->getMessage() . ")";
+}
+
+// Aktualisierte Werte in die Response
+$response["spielgeld"]     = $_SESSION['spielgeld'];
 $response["anzahl_aktien"] = $_SESSION['anzahl_aktien'];
 
+// JSON-Ausgabe
 echo json_encode($response);
