@@ -1,8 +1,4 @@
-/* styles.css */
-
-/* --------------------------------------
-   Basis-Styles (von dir bereits vorhanden)
------------------------------------------*/
+/* Basis-Styles */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -13,7 +9,6 @@ header {
   background-color: #0d6efd;
   color: #fff;
   padding: 1rem;
-  /* Falls du eine horizontale Anordnung von Logo/Titel und Nav willst: */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,9 +40,7 @@ nav a {
   border-radius: 5px;
   text-align: center;
   background: #fff;
-  /* Ergänzt für optischen Effekt */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  /* Sanfter Schatten */
 }
 
 footer {
@@ -56,127 +49,30 @@ footer {
   background-color: #efefef;
 }
 
-/* --------------------------------------
-   Zusätzliche Styles für dein Börsenspiel
------------------------------------------*/
-
-/* Meldungs-Box (z. B. Erfolgs-/Fehlermeldungen) */
-.meldung {
-  color: #007BFF;
-  font-weight: bold;
-  text-align: center;
-  margin: 1rem 0;
-  min-height: 1.2em;
-  /* Damit der Bereich auch ohne Meldung etwas Platz hat */
-}
-
-/* Liste für Spielinfos (Spielgeld, Depot, etc.) */
-.info-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  text-align: center;
-}
-
-.info-list li {
-  margin: 0.5rem 0;
-}
-
-.info-list strong {
-  font-weight: bold;
-  color: #333;
-}
-
-/* Container für den Börsen-Chart */
-#chartContainer {
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-  text-align: center;
-  position: relative;
-}
-
-#chartCanvas {
-  width: 100%;
-  height: 300px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-}
-
-/* Formular-ähnlicher Bereich für Kaufen/Verkaufen */
-.form-group {
+/* Button-Container */
+.button-container {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
   justify-content: center;
-  gap: 1rem;
   margin-top: 1rem;
 }
 
-.form-group label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.form-group input[type="number"] {
-  width: 70px;
-  padding: 0.3rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* Buttons im Börsenspiel */
-.btn {
+.button-container button {
   padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background: #3f51b5;
+  background: #0d6efd;
   color: #fff;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
+  text-decoration: none;
   font-size: 1rem;
-  transition: background 0.2s;
 }
 
-.btn:hover {
-  background: #2c3e9f;
+.button-container button:hover {
+  background: #0b5ed7;
 }
 
-.btn-secondary {
-  background: #e74c3c;
-}
-
-.btn-secondary:hover {
-  background: #c0392b;
-}
-
-/* Gewinn/Verlust-Farben */
-.profit-positive {
-  color: green;
-}
-
-.profit-negative {
-  color: red;
-}
-
-/* Timer-Anzeige */
-#timerDisplay {
-  text-align: center;
-  color: #c00;
-  font-weight: bold;
-  margin-top: 0.5rem;
-}
-
-/* Marktphase (Bullen-/Bärenmarkt) */
-.market-phase {
-  font-weight: bold;
-  margin-top: 1rem;
-  text-align: center;
-}
-
-/* --------------------------------------
-   Responsive Anpassungen für Mobilgeräte
------------------------------------------*/
+/* Responsive Anpassungen */
 @media (max-width: 600px) {
   header {
     flex-direction: column;
@@ -191,8 +87,8 @@ footer {
     margin-right: 1rem;
   }
 
-  .form-group {
+  .cards-container {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 }
