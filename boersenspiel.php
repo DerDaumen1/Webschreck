@@ -2,10 +2,10 @@
 session_start();
 
 // Beispielhaft: Prüfen, ob eingeloggt
-//*if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-  //  header('Location: registrierung.php');
- //   exit;
-//}
+if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
+    header('Location: registrierung.php');
+    exit;
+}
 // Initialwerte, falls nicht vorhanden
 if (!isset($_SESSION['spielgeld'])) {
     $_SESSION['spielgeld'] = 50000;
