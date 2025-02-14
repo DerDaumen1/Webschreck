@@ -1,146 +1,282 @@
 <?php
-// boersenspiel.php
 session_start();
 
-// Wenn nicht registriert/eingeloggt -> zurück zur Registrierung
-if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-    header('Location: registrierung.php');
-    exit;
-}
-
-// Spielgeld aus Session
+// Beispielhaft: Prüfen, ob eingeloggt
+//*if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
+  //  header('Location: registrierung.php');
+ //   exit;
+//}
+// Initialwerte, falls nicht vorhanden
 if (!isset($_SESSION['spielgeld'])) {
     $_SESSION['spielgeld'] = 50000;
 }
 if (!isset($_SESSION['anzahl_aktien'])) {
     $_SESSION['anzahl_aktien'] = 0;
 }
-
-// Prüfen, ob Kauf/Verkauf via POST gesendet wurde
-$meldung = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Minimaler Kauf/Verkauf-Mechanismus:
-    $typ = $_POST['typ'] ?? '';
-    $anzahl = (int)($_POST['anzahl'] ?? 0);
-    $briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
-    $geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
-    
-    // Orderprovision berechnen:
-    // 4,95 Euro + 0,25% vom Orderwert (min. 9,99, max. 59,99)
-    // Orderwert = anzahl * (Briefkurs oder Geldkurs)
-    if ($typ === 'kaufen' && $anzahl > 0) {
-        $orderwert = $anzahl * $briefkurs;
-        $provision = 4.95 + ($orderwert * 0.0025);
-        if ($provision < 9.99) $provision = 9.99;
-        if ($provision > 59.99) $provision = 59.99;
-        
-        $gesamtKosten = $orderwert + $provision;
-        
-        if ($gesamtKosten <= $_SESSION['spielgeld']) {
-            $_SESSION['spielgeld'] -= $gesamtKosten;
-            $_SESSION['anzahl_aktien'] += $anzahl;
-            $meldung = "Kauf erfolgreich! ($anzahl Aktien)";
-        } else {
-            $meldung = "Fehler: Nicht genügend Spielgeld vorhanden!";
-        }
-    }
-    elseif ($typ === 'verkaufen' && $anzahl > 0) {
-        if ($anzahl <= $_SESSION['anzahl_aktien']) {
-            $orderwert = $anzahl * $geldkurs;
-            $provision = 4.95 + ($orderwert * 0.0025);
-            if ($provision < 9.99) $provision = 9.99;
-            if ($provision > 59.99) $provision = 59.99;
-            
-            $erlös = $orderwert - $provision;
-            if ($erlös < 0) $erlös = 0; // rein zur Sicherheit
-            $_SESSION['spielgeld'] += $erlös;
-            $_SESSION['anzahl_aktien'] -= $anzahl;
-            $meldung = "Verkauf erfolgreich! ($anzahl Aktien)";
-        } else {
-            $meldung = "Fehler: Sie besitzen nicht genug Aktien zum Verkauf!";
-        }
-    }
-    // Optional: Spiel beenden, etc.
-    elseif ($typ === 'beenden') {
-        // Hier z.B. Ergebnis anzeigen oder Session zurücksetzen
-        $meldung = "Spiel beendet! Ihr Endguthaben: ".$_SESSION['spielgeld']." €";
-        // z.B. Session-Variablen resetten:
-        // session_destroy();
-    }
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Börsenspiel</title>
-  <style>
-    #chartContainer {
-      width: 600px; 
-      height: 300px; 
-      border: 1px solid #ccc; 
-      margin: 1rem auto;
-    }
-    .info {
-      text-align: center;
-      margin: 1rem;
-    }
-    .meldung {
-      color: blue;
-      font-weight: bold;
-      text-align: center;
-    }
-    .controls {
-      text-align: center;
-      margin: 1rem;
-    }
-    input[type="number"] {
-      width: 60px;
-    }
-  </style>
-  <script src="boerse.js"></script>
+  <title>Börsenspiel (PHP & CSS getrennt)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Externe CSS-Datei einbinden -->
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body onload="initChart();">
+<body onload="initGame();">
 
-<h1 style="text-align:center;">Börsenspiel</h1>
-<div id="chartContainer"></div>
+<header>
+  <h1>Börsenspiel (AJAX-Version)</h1>
+  <nav>
+    <a href="index.html">Startseite</a>
+    <a href="logout.php">Logout</a>
+  </nav>
+</header>
 
-<div class="meldung">
-  <?php echo htmlspecialchars($meldung); ?>
+<div class="container">
+  <div id="chartContainer" class="card">
+    <canvas id="chartCanvas" width="700" height="300"></canvas>
+  </div>
+
+  <div class="meldung" id="meldungDisplay"></div>
+
+  <div class="card">
+    <ul class="info-list">
+      <li><strong>Aktuelles Spielgeld:</strong> 
+          <span id="spielgeldDisplay">50000.00</span> €</li>
+      <li><strong>Anzahl Aktien im Depot:</strong> 
+          <span id="aktienDepotDisplay">0</span></li>
+      <li><strong>Aktueller Gewinn/Verlust:</strong> 
+          <span id="profitDisplay" class="profit-positive">0,00</span> €</li>
+    </ul>
+    <div class="market-phase" id="marketPhaseDisplay"></div>
+    <div id="timerDisplay"></div>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h2>Kurse & Aktionen</h2>
+    <p id="briefkursDisplay" style="margin-bottom:0.5rem;">Briefkurs: 100.00 €</p>
+    <p id="geldkursDisplay" style="margin-bottom:0.5rem;">Geldkurs: 99.00 €</p>
+
+    <div class="form-group">
+      <label for="anzahlInput">Anzahl:</label>
+      <input type="number" id="anzahlInput" value="1" min="1" />
+      <button class="btn" onclick="trade('kaufen')">Aktien kaufen</button>
+      <button class="btn" onclick="trade('verkaufen')">Aktien verkaufen</button>
+      <button class="btn btn-secondary" onclick="trade('beenden')">Spiel beenden</button>
+    </div>
+  </div>
 </div>
 
-<div class="info">
-  <p><strong>Aktuelles Spielgeld:</strong> <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?> €</p>
-  <p><strong>Anzahl Aktien im Depot:</strong> <?php echo $_SESSION['anzahl_aktien']; ?></p>
-  
-  <!-- Hier könnte man Gewinn/Verlust berechnen, wenn man den aktuellen Brief-/Geldkurs kennt -->
-</div>
+<footer>
+  &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.
+</footer>
 
-<div class="controls">
-  <!-- Werte für JS-Simulation (Brief-/Geldkurs) -->
-  <!-- Wir legen hier mal Standardwerte ab, boerse.js wird sie dynamisch ändern -->
-  <span id="briefkursDisplay">Briefkurs: 100.00 €</span> - 
-  <span id="geldkursDisplay">Geldkurs: 99.00 €</span> 
-  
-  <form method="post" style="margin-top:1rem;">
-    <input type="hidden" name="briefkurs" id="briefkursHidden" value="100" />
-    <input type="hidden" name="geldkurs" id="geldkursHidden" value="99" />
-    
-    <label>Anzahl:
-      <input type="number" name="anzahl" value="1" min="1" />
-    </label>
-    
-    <button type="submit" name="typ" value="kaufen">Aktien kaufen</button>
-    <button type="submit" name="typ" value="verkaufen">Aktien verkaufen</button>
-    <button type="submit" name="typ" value="beenden">Spiel beenden</button>
-  </form>
-</div>
+<script>
+/************************************************************
+ * Globale Variablen & Initialisierung
+ ************************************************************/
+let briefkurs = 100.00;
+let geldkurs  = 99.00;
+let chartData = [];
+let ctx, chartCanvas;
 
-<p style="text-align:center;">
-  <a href="index.html">Zur Startseite</a> | 
-  <a href="logout.php">Logout</a>
-</p>
+let consecutiveUps   = 0;
+let consecutiveDowns = 0;
+let currentPhase     = "";
 
+let gameTimerSeconds = 600; // 10 Minuten
+
+function initGame() {
+  chartCanvas = document.getElementById("chartCanvas");
+  ctx = chartCanvas.getContext("2d");
+
+  chartData.push(briefkurs);
+
+  setInterval(updateKurs, 1000);
+  setInterval(updateGameTimer, 1000);
+
+  drawChart();
+  updateAnzeigen();
+}
+
+/************************************************************
+ * Kaufen / Verkaufen / Beenden (AJAX)
+ ************************************************************/
+function trade(action) {
+  const anzahl = document.getElementById("anzahlInput").value;
+
+  let fd = new FormData();
+  fd.append("typ", action);
+  fd.append("anzahl", anzahl);
+  fd.append("briefkurs", briefkurs.toFixed(2));
+  fd.append("geldkurs", geldkurs.toFixed(2));
+
+  fetch("trade.php", {
+    method: "POST",
+    body: fd
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("meldungDisplay").textContent = data.message || "";
+    if (data.success) {
+      document.getElementById("spielgeldDisplay").textContent = 
+        parseFloat(data.spielgeld).toFixed(2).replace('.', ',');
+      document.getElementById("aktienDepotDisplay").textContent = data.anzahl_aktien;
+    }
+    if (action === 'beenden' && data.success) {
+      gameTimerSeconds = 0;
+    }
+    updateAnzeigen();
+  })
+  .catch(err => {
+    console.error("AJAX-Fehler:", err);
+    document.getElementById("meldungDisplay").textContent = 
+      "Fehler beim AJAX-Aufruf!";
+  });
+}
+
+/************************************************************
+ * Zufällige Kursänderung
+ ************************************************************/
+function updateKurs() {
+  let chanceUp = 0.5;
+  if (currentPhase === "Bullenmarkt") chanceUp = 0.75;
+  if (currentPhase === "Bärenmarkt")  chanceUp = 0.25;
+
+  let rand = Math.random();
+  let delta = Math.random() * 0.04 + 0.01; // 0.01..0.05
+
+  if (rand < chanceUp) {
+    briefkurs += delta;
+    geldkurs  += delta;
+    consecutiveUps++;
+    consecutiveDowns = 0;
+  } else {
+    briefkurs -= delta;
+    geldkurs  -= delta;
+    consecutiveDowns++;
+    consecutiveUps = 0;
+  }
+
+  if (briefkurs < 0.01) briefkurs = 0.01;
+  if (geldkurs < 0.00)  geldkurs  = 0.00;
+
+  chartData.push(briefkurs);
+
+  if (consecutiveUps >= 3) {
+    currentPhase = "Bullenmarkt";
+  } else if (consecutiveDowns >= 3) {
+    currentPhase = "Bärenmarkt";
+  }
+  // Optional neutralisieren bei erstem Richtungswechsel
+  if (consecutiveUps === 1 && currentPhase === "Bärenmarkt") {
+    currentPhase = "";
+  }
+  if (consecutiveDowns === 1 && currentPhase === "Bullenmarkt") {
+    currentPhase = "";
+  }
+
+  drawChart();
+  updateAnzeigen();
+}
+
+/************************************************************
+ * Chart zeichnen
+ ************************************************************/
+function drawChart() {
+  ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+  let padding = 20;
+  let w = chartCanvas.width - 2 * padding;
+  let h = chartCanvas.height - 2 * padding;
+
+  let minValue = Math.min(...chartData);
+  let maxValue = Math.max(...chartData);
+  if (minValue === maxValue) {
+    minValue -= 1;
+    maxValue += 1;
+  }
+
+  let scaleX = w / (chartData.length - 1);
+  let scaleY = h / (maxValue - minValue);
+
+  ctx.beginPath();
+  ctx.strokeStyle = "#3f51b5";
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i < chartData.length; i++) {
+    let x = padding + i * scaleX;
+    let y = padding + (maxValue - chartData[i]) * scaleY;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.stroke();
+}
+
+/************************************************************
+ * Anzeigen aktualisieren
+ ************************************************************/
+function updateAnzeigen() {
+  document.getElementById("briefkursDisplay").textContent = 
+    "Briefkurs: " + briefkurs.toFixed(2) + " €";
+  document.getElementById("geldkursDisplay").textContent = 
+    "Geldkurs: " + geldkurs.toFixed(2) + " €";
+
+  // Marktphase
+  const mp = document.getElementById("marketPhaseDisplay");
+  if (currentPhase === "Bullenmarkt") {
+    mp.textContent = "Bullenmarkt (Chance auf Steigerung: 75%)";
+    mp.style.color = "green";
+  } else if (currentPhase === "Bärenmarkt") {
+    mp.textContent = "Bärenmarkt (Chance auf Fallen: 75%)";
+    mp.style.color = "red";
+  } else {
+    mp.textContent = "";
+  }
+
+  // Live-Gewinn/Verlust
+  const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
+  const spielgeld   = parseFloat(spielgeldText) || 0;
+  const depotAnzahl = parseInt(document.getElementById("aktienDepotDisplay").textContent) || 0;
+
+  let liveProfit = (spielgeld + depotAnzahl * geldkurs) - 50000;
+
+  const profitEl = document.getElementById("profitDisplay");
+  let profitText = liveProfit.toFixed(2).replace('.', ',');
+  profitEl.textContent = profitText;
+
+  if (liveProfit >= 0) {
+    profitEl.classList.add("profit-positive");
+    profitEl.classList.remove("profit-negative");
+  } else {
+    profitEl.classList.add("profit-negative");
+    profitEl.classList.remove("profit-positive");
+  }
+}
+
+/************************************************************
+ * Countdown-Timer
+ ************************************************************/
+function updateGameTimer() {
+  if (gameTimerSeconds <= 0) {
+    return;
+  }
+  gameTimerSeconds--;
+
+  if (gameTimerSeconds === 0) {
+    trade('beenden');
+  }
+
+  let min = Math.floor(gameTimerSeconds / 60);
+  let sec = gameTimerSeconds % 60;
+  let text = `Verbleibende Spielzeit: ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')} min`;
+  document.getElementById("timerDisplay").textContent = text;
+}
+</script>
 </body>
 </html>
