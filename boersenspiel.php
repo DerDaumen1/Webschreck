@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+//Test
 // Prüfen, ob eingeloggt
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     header('Location: registrierung.php');
