@@ -33,7 +33,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 <header>
   <h1>Börsenspiel (AJAX-Version)</h1>
   <nav>
-    <a href="index.html">Startseite</a>
+    <a href="index.php">Startseite</a>
     <a href="logout.php">Logout</a>
   </nav>
 </header>

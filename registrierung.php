@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
 
   <p style="text-align:center;">
-    <a href="index.html">Zurück zur Startseite</a>
+    <a href="index.php">Zurück zur Startseite</a>
   </p>
 <?php else: ?>
   <div class="erfolg">
