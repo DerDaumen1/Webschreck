@@ -23,8 +23,8 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 </header>
 
 <div class="jumbotron">
-  <h2>Willkommen, <?= htmlspecialchars($_SESSION['vorname']) ?>!</h2>
-  <p>Verwalten Sie Ihr virtuelles Depot und handeln Sie mit Aktien.</p>
+<h2>Willkommen, <?php echo isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "Spieler"; ?>!</h2>
+<p>Verwalten Sie Ihr virtuelles Depot und handeln Sie mit Aktien.</p>
 </div>
 
 <div class="cards-container">

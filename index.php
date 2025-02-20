@@ -9,7 +9,7 @@ session_start();
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<<body>
   <header>
     <nav>
       <a href="index.php">Startseite</a>
@@ -22,9 +22,12 @@ session_start();
     </nav>
     <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
       <div class="user-info">
-        <span><?= htmlspecialchars($_SESSION['vorname']) ?> <?= htmlspecialchars($_SESSION['nachname']) ?></span>
-        <span>Spielgeld: <?= number_format($_SESSION['spielgeld'], 2, ',', '.') ?> €</span>
-        <span>Aktien: <?= $_SESSION['anzahl_aktien'] ?></span>
+        <span>
+          <?php echo isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "Unbekannt"; ?>
+          <?php echo isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : ""; ?>
+        </span>
+        <span>Spielgeld: <?php echo number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.'); ?> €</span>
+        <span>Aktien: <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
       </div>
     <?php endif; ?>
   </header>

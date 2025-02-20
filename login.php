@@ -15,31 +15,23 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $passwort = trim($_POST['passwort'] ?? '');
-
-    $stmt = $pdo->prepare("
-        SELECT id, email, passwort, spielgeld, anzahl_aktien, vorname, nachname 
-        FROM users 
-        WHERE email = ? 
-          AND passwort = ?
-    ");
-    $stmt->execute([$email, $passwort]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user) {
-        $_SESSION['angemeldet']   = true;
-        $_SESSION['nutzer_email'] = $user['email'];
-        $_SESSION['vorname']      = $user['vorname'];
-        $_SESSION['nachname']     = $user['nachname'];
-        $_SESSION['user_id']      = $user['id'];
-        $_SESSION['spielgeld']    = $user['spielgeld'];
-        $_SESSION['anzahl_aktien'] = $user['anzahl_aktien'];
-
-        header('Location: index.php');
-        exit;
-    } else {
-        $fehler = "Anmeldung fehlgeschlagen! E-Mail oder Passwort falsch.";
+  $email    = trim($_POST['email'] ?? '');
+  $passwort = trim($_POST['passwort'] ?? '');
+  $stmt = $pdo->prepare("SELECT id, email, passwort, spielgeld, anzahl_aktien, vorname, nachname FROM users WHERE email = ? AND passwort = ?");
+  $stmt->execute([$email, $passwort]);
+  $user = $stmt->fetch(PDO::FETCH_ASSOC);
+  if ($user) {
+      $_SESSION['angemeldet']   = true;
+      $_SESSION['nutzer_email'] = $user['email'];
+      $_SESSION['vorname']      = !empty($user['vorname']) ? $user['vorname'] : "Spieler";
+      $_SESSION['nachname']     = !empty($user['nachname']) ? $user['nachname'] : "";
+      $_SESSION['user_id']      = $user['id'];
+      $_SESSION['spielgeld']    = $user['spielgeld'];
+      $_SESSION['anzahl_aktien'] = $user['anzahl_aktien'];
+      header('Location: index.php');
+      exit;
+  } else {
+      $fehler = "Anmeldung fehlgeschlagen! E-Mail oder Passwort falsch.";
     }
 }
 ?>
