@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
 <p style="text-align:center;">
-  <a href="index.html">Zur Startseite</a> |
+  <a href="index.php">Zur Startseite</a> |
   <a href="registrierung.php">Noch kein Konto? Registrieren</a>
 </p>
 </body>
