@@ -59,7 +59,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       <li>
         <strong>Aktuelles Spielgeld:</strong>
         <span id="spielgeldDisplay">
-  <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?>
+  <?php echo number_format($_SESSION['spielgeld'], 2, '.', ''); ?>
 </span> €
       </li>
       <li>

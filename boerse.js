@@ -193,7 +193,8 @@ function updateAnzeigen() {
   }
 
   // Gewinn/Verlust live berechnen
-  const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
+  // const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
+  const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(/\./g, '').replace(',', '.');
   const spielgeld = parseFloat(spielgeldText) || 0;
   const depotAnzahl = parseInt(document.getElementById("aktienDepotDisplay").textContent) || 0;
 
