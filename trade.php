@@ -55,7 +55,7 @@ if ($typ === 'kaufen' && $anzahl > 0) {
         $_SESSION['anzahl_aktien'] += $anzahl;
 
         $response["success"] = true;
-        $response["message"] = "Kauf erfolgreich! ($anzahl Aktien)";
+        $response["message"] = "Kauf erfolgreich! ({$anzahl} Aktien)<br>Orderprovision: " . number_format($provision, 2, ',', '.') . " €";
     } else {
         $response["message"] = "Fehler: Nicht genügend Spielgeld!";
     }
