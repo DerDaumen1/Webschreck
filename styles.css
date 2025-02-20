@@ -5,6 +5,7 @@ body {
   padding: 0;
 }
 
+
 header {
   background-color: #0d6efd;
   color: #fff;
@@ -18,6 +19,28 @@ nav a {
   color: white;
   margin-right: 1rem;
   text-decoration: none;
+}
+
+.meldung {
+  position: absolute;
+  /* Absolut in Relation zur umgebenden .card */
+  left: 50%;
+  /* Zentriert horizontal */
+  transform: translateX(-50%);
+  top: 180px;
+  /* Abstand nach unten anpassen, bis es direkt unter dem Timer liegt */
+  background-color: #eee;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  z-index: 9999;
+  min-width: 200px;
+  text-align: center;
+  /* Inhalt mittig ausrichten */
+}
+
+.meldung:empty {
+  display: none;
 }
 
 .jumbotron {

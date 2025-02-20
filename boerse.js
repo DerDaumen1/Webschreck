@@ -55,7 +55,7 @@ function trade(action) {
     .then(res => res.json())
     .then(data => {
       // Nachricht anzeigen
-      document.getElementById("meldungDisplay").textContent = data.message || "";
+      document.getElementById("meldungDisplay").innerHTML = data.message || "";
 
       // Falls Erfolg -> Spielgeld und Depot-Aktien im Frontend aktualisieren
       if (data.success) {
@@ -194,7 +194,7 @@ function updateAnzeigen() {
 
   // Gewinn/Verlust live berechnen
   // const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
-  const spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(/\./g, '').replace(',', '.');
+  const spielgeldText = document.getElementById("spielgeldDisplay").textContent;
   const spielgeld = parseFloat(spielgeldText) || 0;
   const depotAnzahl = parseInt(document.getElementById("aktienDepotDisplay").textContent) || 0;
 

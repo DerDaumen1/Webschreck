@@ -51,22 +51,17 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     <canvas id="chartCanvas" width="700" height="300"></canvas>
   </div>
 
-  <!-- Card 2: Meldung und Infos -->
-  <div class="card">
-    <div class="meldung" id="meldungDisplay"></div>
-
+  <!-- Card 2: Infos + Meldung -->
+  <!-- ACHTUNG: Hier kommt "position: relative" auf das Elternelement -->
+  <div class="card" style="position: relative;">
     <ul class="info-list">
       <li>
         <strong>Aktuelles Spielgeld:</strong>
-        <span id="spielgeldDisplay">
-  <?php echo number_format($_SESSION['spielgeld'], 2, '.', ''); ?>
-</span> €
+        <span id="spielgeldDisplay"><?php echo number_format($_SESSION['spielgeld'], 2, '.', ''); ?></span> €
       </li>
       <li>
         <strong>Anzahl Aktien im Depot:</strong>
-        <span id="aktienDepotDisplay">
-  <?php echo $_SESSION['anzahl_aktien']; ?>
-</span>
+        <span id="aktienDepotDisplay"><?php echo $_SESSION['anzahl_aktien']; ?></span>
       </li>
       <li>
         <strong>Aktueller Gewinn/Verlust:</strong>
@@ -76,8 +71,12 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 
     <div class="market-phase" id="marketPhaseDisplay"></div>
     <div id="timerDisplay"></div>
+
+    <!-- Meldung-DIV direkt hier platzieren, damit wir sie relativ zur Card positionieren können -->
+    <div class="meldung" id="meldungDisplay"></div>
   </div>
 </div>
+
 
 <!-- Kauf/Verkauf-Steuerung -->
 <div class="cards-container">
