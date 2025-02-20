@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (count($fehler) === 0) {
-        $stmt = $pdo->prepare("INSERT INTO users (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien) VALUES (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)");
+        $stmt = $pdo->prepare("INSERT INTO users (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien)
+                               VALUES (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)");
         $stmt->execute([
             ':anrede' => $anrede,
             ':vorname' => $vorname,
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         $erfolg = true;
-        // Um den User ggf. direkt einzuloggen:
+        // Direkt einloggen und zur Startseite weiterleiten:
         $_SESSION['angemeldet'] = true;
         $_SESSION['nutzer_email'] = $email;
         $_SESSION['vorname'] = $vorname;
@@ -52,42 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
   <title>Registrierung Börsenspiel</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      margin-bottom: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #0d6efd;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0b5ed7;
-    }
-  </style>
+  <!-- Hier wird das externe Stylesheet für die Registrierungsseite eingebunden -->
+  <link rel="stylesheet" href="registrierung.css">
 </head>
 <body>
 <div class="container">
@@ -103,19 +76,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </ul>
         </div>
       <?php endif; ?>
-    <form id="regForm" method="post" action="registrierung.php">
-      <label>Anrede:<input type="text" name="anrede" required /></label>
-      <label>Vorname:<input type="text" name="vorname" required /></label>
-      <label>Nachname:<input type="text" name="nachname" required /></label>
-      <label>E-Mail:<input type="email" name="email" required /></label>
-      <label>E-Mail wiederholen:<input type="email" name="emailWdh" required /></label>
-      <label>Geburtsdatum:<input type="date" name="geburtsdatum" required /></label>
-      <label>PLZ:<input type="text" name="plz" required /></label>
-      <label>Passwort:<input type="password" name="passwort" required /></label>
-      <label>Passwort wiederholen:<input type="password" name="passwortWdh" required /></label>
-      <button type="submit">Registrieren</button>
-    </form>
-    <p><a href="index.php">Zurück zur Startseite</a></p>
+
+      <form id="regForm" method="post" action="registrierung.php">
+        <div class="form-group">
+          <label for="anrede">Anrede</label>
+          <input type="text" id="anrede" name="anrede" required placeholder="Herr / Frau / Divers" />
+        </div>
+
+        <div class="form-group">
+          <label for="vorname">Vorname</label>
+          <input type="text" id="vorname" name="vorname" required placeholder="Max" />
+        </div>
+
+        <div class="form-group">
+          <label for="nachname">Nachname</label>
+          <input type="text" id="nachname" name="nachname" required placeholder="Mustermann" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-Mail</label>
+          <input type="email" id="email" name="email" required placeholder="beispiel@domain.de" />
+        </div>
+
+        <div class="form-group">
+          <label for="emailWdh">E-Mail wiederholen</label>
+          <input type="email" id="emailWdh" name="emailWdh" required placeholder="nochmal eingeben" />
+        </div>
+
+        <div class="form-group">
+          <label for="geburtsdatum">Geburtsdatum</label>
+          <input type="date" id="geburtsdatum" name="geburtsdatum" required />
+        </div>
+
+        <div class="form-group">
+          <label for="plz">PLZ</label>
+          <input type="text" id="plz" name="plz" required placeholder="12345" />
+        </div>
+
+        <div class="form-group">
+          <label for="passwort">Passwort</label>
+          <input type="password" id="passwort" name="passwort" required placeholder="••••••" />
+        </div>
+
+        <div class="form-group">
+          <label for="passwortWdh">Passwort wiederholen</label>
+          <input type="password" id="passwortWdh" name="passwortWdh" required placeholder="••••••" />
+        </div>
+
+        <button type="submit">Registrieren</button>
+      </form>
+      <p class="back-link"><a href="index.php">Zurück zur Startseite</a></p>
+    <?php else: ?>
+      <p class="success">Erfolgreich registriert!</p>
+      <p class="back-link"><a href="index.php">Weiter zur Startseite</a></p>
     <?php endif; ?>
   </div>
 </div>
