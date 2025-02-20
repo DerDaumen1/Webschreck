@@ -69,8 +69,9 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       </li>
     </ul>
 
-    <div class="market-phase" id="marketPhaseDisplay"></div>
+    
     <div id="timerDisplay"></div>
+    <div class="market-phase" id="marketPhaseDisplay"></div>
 
     <!-- Meldung-DIV direkt hier platzieren, damit wir sie relativ zur Card positionieren können -->
     <div class="meldung" id="meldungDisplay"></div>

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $passwort = trim($_POST['passwort'] ?? '');
 
   // Suche den Nutzer anhand der E-Mail
-  $stmt = $pdo->prepare("SELECT id, email, passwort, spielgeld, anzahl_aktien FROM users WHERE email = ?");
+  $stmt = $pdo->prepare("SELECT id, email, vorname, nachname, passwort, spielgeld, anzahl_aktien FROM users WHERE email = ?");
   $stmt->execute([$email]);
   $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -32,8 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $_SESSION['user_id']      = $user['id'];
       $_SESSION['spielgeld']    = isset($user['spielgeld']) ? $user['spielgeld'] : 50000;
       $_SESSION['anzahl_aktien'] = isset($user['anzahl_aktien']) ? $user['anzahl_aktien'] : 0;
+      $_SESSION['vorname']      = $user['vorname'];
+      $_SESSION['nachname']     = $user['nachname'];
 
-      header('Location: boersenspiel.php');
+      header('Location: index.php');
       exit;
   } else {
       $fehler = "Anmeldung fehlgeschlagen! E-Mail oder Passwort falsch.";
