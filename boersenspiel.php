@@ -7,84 +7,94 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
-// Die folgenden Zeilen entfernen wir, damit wir nicht mehr hart 50.000 / 0 setzen:
-// if (!isset($_SESSION['spielgeld'])) {
-//     $_SESSION['spielgeld'] = 50000;
-// }
-// if (!isset($_SESSION['anzahl_aktien'])) {
-//     $_SESSION['anzahl_aktien'] = 0;
-// }
+// Falls stocks noch nicht gesetzt, initialisieren wir z. B. 10 Musteraktien
+if (!isset($_SESSION['stocks'])) {
+    $_SESSION['stocks'] = [
+      [ 'id'=>1, 'name'=>'Mustermann AG', 'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>2, 'name'=>'Beispiel AG',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>3, 'name'=>'Test Inc.',     'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>4, 'name'=>'MegaCorp',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>5, 'name'=>'Future Ltd.',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>6, 'name'=>'Sample GmbH',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>7, 'name'=>'Hallo AG',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>8, 'name'=>'World Ind.',    'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>9, 'name'=>'Börsenspiel SE', 'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>10,'name'=>'Fantasy PLC',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ]
+    ];
+}
+// Ebenfalls eine Session-Struktur für die Historie (letzte 10 Kurse)
+if (!isset($_SESSION['stock_history'])) {
+  $_SESSION['stock_history'] = [];
+  foreach($_SESSION['stocks'] as $s) {
+    $_SESSION['stock_history'][$s['id']] = [100.0]; // Start-Kurs in History
+  }
+}
 
-// Ab hier nur noch HTML-Struktur
+// Ab hier nur noch HTML
 ?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
   <title>Börsenspiel (AJAX-Version mit ausgelagertem JS)</title>
-  <!-- Externe CSS-Datei -->
   <link rel="stylesheet" href="styles.css">
-
-  <!-- Meta-Viewport für Responsive Design -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body onload="initGame();">
 
 <header>
   <h1>Börsenspiel (AJAX-Version)</h1>
   <nav>
-    <a href="index.php">Startseite</a>
+    <a href="index.php">Startseite</a> |
+    <a href="stock_overview.php">Aktienübersicht</a> |
+    <a href="orderbuch.php">Orderbuch</a> |
     <a href="logout.php">Logout</a>
   </nav>
 </header>
 
-<!-- Optionales Jumbotron / Intro-Bereich -->
 <div class="jumbotron">
   <h2>Herzlich willkommen im Börsenspiel!</h2>
   <p>Erleben Sie spielerisch die Welt des Aktienhandels.</p>
 </div>
 
-<!-- Hauptbereich (Chart, Meldung, Info-Box) -->
 <div class="cards-container">
-  <!-- Card 1: Chart -->
+  <!-- Chart, Meldung, Info-Box wie gehabt -->
   <div class="card">
     <canvas id="chartCanvas" width="700" height="300"></canvas>
   </div>
 
-  <!-- Card 2: Infos + Meldung -->
-  <!-- ACHTUNG: Hier kommt "position: relative" auf das Elternelement -->
   <div class="card" style="position: relative;">
+    <div class="meldung" id="meldungDisplay"></div>
+
     <ul class="info-list">
-      <li>
-        <strong>Aktuelles Spielgeld:</strong>
-        <span id="spielgeldDisplay"><?php echo number_format($_SESSION['spielgeld'], 2, '.', ''); ?></span> €
+      <li><strong>Aktuelles Spielgeld:</strong> <span id="spielgeldDisplay">
+        <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?></span> €
       </li>
-      <li>
-        <strong>Anzahl Aktien im Depot:</strong>
-        <span id="aktienDepotDisplay"><?php echo $_SESSION['anzahl_aktien']; ?></span>
+      <li><strong>Gesamt-Aktien (alter Wert):</strong> <span id="aktienDepotDisplay">
+        <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
       </li>
-      <li>
-        <strong>Aktueller Gewinn/Verlust:</strong>
-        <span id="profitDisplay" class="profit-positive">0,00</span> €
+      <li><strong>Aktueller Gewinn/Verlust:</strong> <span id="profitDisplay" class="profit-positive">0,00</span> €
       </li>
     </ul>
 
-    
+    <div id="marketPhaseDisplay"></div>
     <div id="timerDisplay"></div>
-    <div class="market-phase" id="marketPhaseDisplay"></div>
-
-    <!-- Meldung-DIV direkt hier platzieren, damit wir sie relativ zur Card positionieren können -->
-    <div class="meldung" id="meldungDisplay"></div>
   </div>
 </div>
-
 
 <!-- Kauf/Verkauf-Steuerung -->
 <div class="cards-container">
   <div class="card" style="width: 100%;">
     <h2>Kurse & Aktionen</h2>
-    <p id="briefkursDisplay" style="margin-bottom:0.5rem;">Briefkurs: 100.00 €</p>
-    <p id="geldkursDisplay" style="margin-bottom:0.5rem;">Geldkurs: 99.00 €</p>
+    <!-- Hier: Auswahl der Aktie -->
+    <label for="stockSelect">Aktie wählen:</label>
+    <select id="stockSelect">
+      <?php foreach($_SESSION['stocks'] as $s): ?>
+        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
+      <?php endforeach; ?>
+    </select>
+
+    <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
+    <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
 
     <div class="form-group">
       <label for="anzahlInput">Anzahl:</label>
