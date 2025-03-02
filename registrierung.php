@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':plz' => $plz
         ]);
 
+        $_SESSION['user_id'] = $pdo->lastInsertId();
+
+
         $erfolg = true;
         // Direkt einloggen und zur Startseite weiterleiten:
         $_SESSION['angemeldet'] = true;
