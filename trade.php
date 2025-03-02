@@ -27,6 +27,8 @@ $typ       = $_POST['typ'] ?? '';
 $anzahl    = (int)($_POST['anzahl'] ?? 0);
 $briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
 $geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
+$bet       = (float)($_POST['bet'] ?? 0);
+$amount    = (float)($_POST['amount'] ?? 0);
 
 // Hilfsfunktion zur Orderprovision
 function berechneProvision($orderwert) {
@@ -80,7 +82,21 @@ elseif ($typ === 'beenden') {
     $response["success"] = true;
     $endguthaben = number_format($_SESSION['spielgeld'], 2, ',', '.');
     $response["message"] = "Spiel beendet! Ihr Endguthaben: {$endguthaben} €";
-    // Optional: session_destroy();
+}
+elseif ($typ === 'huhn_bet') {
+    if ($bet > $_SESSION['spielgeld']) {
+        $response["success"] = false;
+        $response["message"] = "Nicht genug Guthaben!";
+    } else {
+        $_SESSION['spielgeld'] -= $bet;
+        $response["success"] = true;
+        $response["message"] = "Einsatz platziert!";
+    }
+}
+elseif ($typ === 'huhn_win') {
+    $_SESSION['spielgeld'] += $amount;
+    $response["success"] = true;
+    $response["message"] = "Gewinn ausgezahlt!";
 }
 else {
     $response["message"] = "Ungültige Aktion!";
@@ -100,9 +116,6 @@ try {
         'id'     => $_SESSION['user_id']
     ]);
 } catch (PDOException $e) {
-    // Falls das Update fehlschlägt, bleibt Session zwar geändert,
-    // aber DB ist evtl. veraltet. 
-    // Du kannst hier eine Fehlermeldung ausgeben oder loggen.
     $response["message"] .= " (DB-Update-Fehler: " . $e->getMessage() . ")";
 }
 
