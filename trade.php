@@ -28,6 +28,12 @@ $anzahl     = (int)($_POST['anzahl'] ?? 0);
 $stockName  = $_POST['stock_name'] ?? 'unbekannt';
 $briefkurs  = (float)($_POST['briefkurs'] ?? 100.0);
 $geldkurs   = (float)($_POST['geldkurs'] ?? 99.0);
+//$typ       = $_POST['typ'] ?? '';
+//$anzahl    = (int)($_POST['anzahl'] ?? 0);
+//$briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
+//$geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
+$bet       = (float)($_POST['bet'] ?? 0);
+$amount    = (float)($_POST['amount'] ?? 0);
 
 // Hilfsfunktion zur Orderprovision
 function berechneProvision($orderwert) {
@@ -128,6 +134,46 @@ if ($typ === 'kaufen' && $anzahl > 0) {
 
 } else {
     $response["message"] = "Ungültige Aktion!";
+}
+
+// Aktualisierte Werte in die Response
+$response["spielgeld"] = $_SESSION['spielgeld'] ?? 50000;
+echo json_encode($response);
+}
+elseif ($typ === 'huhn_bet') {
+    if ($bet > $_SESSION['spielgeld']) {
+        $response["success"] = false;
+        $response["message"] = "Nicht genug Guthaben!";
+    } else {
+        $_SESSION['spielgeld'] -= $bet;
+        $response["success"] = true;
+        $response["message"] = "Einsatz platziert!";
+    }
+}
+elseif ($typ === 'huhn_win') {
+    $_SESSION['spielgeld'] += $amount;
+    $response["success"] = true;
+    $response["message"] = "Gewinn ausgezahlt!";
+}
+else {
+    $response["message"] = "Ungültige Aktion!";
+}
+
+// Wenn Erfolg oder nicht – Session ist jetzt ggf. aktualisiert.
+// => Speichere neue Werte in DB, damit es dauerhaft bleibt.
+try {
+    $update = $pdo->prepare("
+        UPDATE users
+        SET spielgeld = :sg, anzahl_aktien = :aktien
+        WHERE id = :id
+    ");
+    $update->execute([
+        'sg'     => $_SESSION['spielgeld'],
+        'aktien' => $_SESSION['anzahl_aktien'],
+        'id'     => $_SESSION['user_id']
+    ]);
+} catch (PDOException $e) {
+    $response["message"] .= " (DB-Update-Fehler: " . $e->getMessage() . ")";
 }
 
 // Aktualisierte Werte in die Response

@@ -65,9 +65,13 @@ session_start();
     </div>
 
     <div class="card">
-      <h3>Börsencrashspiel <span style="color: orange;">Coming Soon</span></h3>
-      <p>Ein neues Spielmodul ist in Vorbereitung.</p>
-      <button disabled>Verfügbar in Kürze</button>
+      <h3>Hühner-Roulette</h3>
+      <p>Riskieren Sie Ihr Spielgeld in einem spannenden 50/50-Spiel!</p>
+      <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
+        <button onclick="location.href='huenchnspiel.php'">Jetzt spielen</button>
+      <?php else: ?>
+        <button disabled>Bitte zuerst anmelden</button>
+      <?php endif; ?>
     </div>
   </div>
 
