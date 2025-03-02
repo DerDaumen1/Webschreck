@@ -23,15 +23,11 @@ try {
 }
 
 // POST-Daten
-$typ        = $_POST['typ'] ?? '';
-$anzahl     = (int)($_POST['anzahl'] ?? 0);
-$stockName  = $_POST['stock_name'] ?? 'unbekannt';
-$briefkurs  = (float)($_POST['briefkurs'] ?? 100.0);
-$geldkurs   = (float)($_POST['geldkurs'] ?? 99.0);
-//$typ       = $_POST['typ'] ?? '';
-//$anzahl    = (int)($_POST['anzahl'] ?? 0);
-//$briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
-//$geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
+$typ       = $_POST['typ'] ?? '';
+$anzahl    = (int)($_POST['anzahl'] ?? 0);
+$stockName = $_POST['stock_name'] ?? 'unbekannt';
+$briefkurs = (float)($_POST['briefkurs'] ?? 100.0);
+$geldkurs  = (float)($_POST['geldkurs'] ?? 99.0);
 $bet       = (float)($_POST['bet'] ?? 0);
 $amount    = (float)($_POST['amount'] ?? 0);
 
@@ -45,12 +41,12 @@ function berechneProvision($orderwert) {
 
 // Basis-Response
 $response = [
-    "success"       => false,
-    "message"       => "",
-    "spielgeld"     => $_SESSION['spielgeld'] ?? 50000
+    "success"  => false,
+    "message"  => "",
+    "spielgeld"=> $_SESSION['spielgeld'] ?? 50000
 ];
 
-// Kauf/Verkauf/Beenden
+// Kauf/Verkauf/Beenden/Huhn etc.
 if ($typ === 'kaufen' && $anzahl > 0) {
     $orderwert = $anzahl * $briefkurs;
     $provision = berechneProvision($orderwert);
@@ -58,10 +54,6 @@ if ($typ === 'kaufen' && $anzahl > 0) {
 
     if ($gesamt <= $_SESSION['spielgeld']) {
         $_SESSION['spielgeld'] -= $gesamt;
-
-        // Optional: wenn du pro Aktie Lager brauchst: $_SESSION['anzahl_pro_aktie'][$stockName] += $anzahl;
-        // Hier belassen wir es bei der alten "anzahl_aktien"-Variable, 
-        // was aber natürlich nur 1 Aktie abbildet. 
         $_SESSION['anzahl_aktien'] = ($_SESSION['anzahl_aktien'] ?? 0) + $anzahl;
 
         $response["success"] = true;
@@ -70,19 +62,19 @@ if ($typ === 'kaufen' && $anzahl > 0) {
 
         // DB-Eintrag (Orderbuch)
         try {
-          $ins = $pdo->prepare("
-            INSERT INTO orders (user_id, stock_name, order_type, anzahl, price, provision, created_at)
-            VALUES (:uid, :sname, 'buy', :anz, :prc, :prov, NOW())
-          ");
-          $ins->execute([
-            'uid'   => $_SESSION['user_id'],
-            'sname' => $stockName,
-            'anz'   => $anzahl,
-            'prc'   => $briefkurs,
-            'prov'  => $provision
-          ]);
+            $ins = $pdo->prepare("
+              INSERT INTO orders (user_id, stock_name, order_type, anzahl, price, provision, created_at)
+              VALUES (:uid, :sname, 'buy', :anz, :prc, :prov, NOW())
+            ");
+            $ins->execute([
+              'uid'   => $_SESSION['user_id'],
+              'sname' => $stockName,
+              'anz'   => $anzahl,
+              'prc'   => $briefkurs,
+              'prov'  => $provision
+            ]);
         } catch (PDOException $e) {
-          $response["message"] .= " (DB-Fehler: ".$e->getMessage().")";
+            $response["message"] .= " (DB-Fehler: " . $e->getMessage() . ")";
         }
 
     } else {
@@ -90,8 +82,6 @@ if ($typ === 'kaufen' && $anzahl > 0) {
     }
 
 } elseif ($typ === 'verkaufen' && $anzahl > 0) {
-    // Bei einer Mehr-Aktien-Logik solltest du aus DB/Session abfragen, wie viel 
-    // der Nutzer von $stockName hat. Hier vereinfachen wir's:
     $currentHeld = $_SESSION['anzahl_aktien'] ?? 0;
 
     if ($anzahl <= $currentHeld) {
@@ -108,19 +98,19 @@ if ($typ === 'kaufen' && $anzahl > 0) {
 
         // DB-Eintrag (Orderbuch)
         try {
-          $ins = $pdo->prepare("
-            INSERT INTO orders (user_id, stock_name, order_type, anzahl, price, provision, created_at)
-            VALUES (:uid, :sname, 'sell', :anz, :prc, :prov, NOW())
-          ");
-          $ins->execute([
-            'uid'   => $_SESSION['user_id'],
-            'sname' => $stockName,
-            'anz'   => $anzahl,
-            'prc'   => $geldkurs,
-            'prov'  => $provision
-          ]);
+            $ins = $pdo->prepare("
+              INSERT INTO orders (user_id, stock_name, order_type, anzahl, price, provision, created_at)
+              VALUES (:uid, :sname, 'sell', :anz, :prc, :prov, NOW())
+            ");
+            $ins->execute([
+              'uid'   => $_SESSION['user_id'],
+              'sname' => $stockName,
+              'anz'   => $anzahl,
+              'prc'   => $geldkurs,
+              'prov'  => $provision
+            ]);
         } catch (PDOException $e) {
-          $response["message"] .= " (DB-Fehler: ".$e->getMessage().")";
+            $response["message"] .= " (DB-Fehler: " . $e->getMessage() . ")";
         }
 
     } else {
@@ -132,15 +122,8 @@ if ($typ === 'kaufen' && $anzahl > 0) {
     $endguthaben = number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.');
     $response["message"] = "Spiel beendet! Ihr Endguthaben: {$endguthaben} €";
 
-} else {
-    $response["message"] = "Ungültige Aktion!";
-}
-
-// Aktualisierte Werte in die Response
-$response["spielgeld"] = $_SESSION['spielgeld'] ?? 50000;
-echo json_encode($response);
-}
-elseif ($typ === 'huhn_bet') {
+} elseif ($typ === 'huhn_bet') {
+    // Beispiel-Logik: Guthaben prüfen
     if ($bet > $_SESSION['spielgeld']) {
         $response["success"] = false;
         $response["message"] = "Nicht genug Guthaben!";
@@ -149,17 +132,18 @@ elseif ($typ === 'huhn_bet') {
         $response["success"] = true;
         $response["message"] = "Einsatz platziert!";
     }
-}
-elseif ($typ === 'huhn_win') {
+
+} elseif ($typ === 'huhn_win') {
+    // Gewinn
     $_SESSION['spielgeld'] += $amount;
     $response["success"] = true;
     $response["message"] = "Gewinn ausgezahlt!";
-}
-else {
+
+} else {
     $response["message"] = "Ungültige Aktion!";
 }
 
-// Wenn Erfolg oder nicht – Session ist jetzt ggf. aktualisiert.
+// => Session ist aktualisiert
 // => Speichere neue Werte in DB, damit es dauerhaft bleibt.
 try {
     $update = $pdo->prepare("
