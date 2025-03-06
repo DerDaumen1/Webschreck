@@ -12,7 +12,7 @@ session_start();
 <body>
   <header>
     <nav>
-      <a href="index.php">Startseite</a>
+      <a href="index.php">Startseite </a>
       <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
         <a href="logout.php">Logout</a>
       <?php else: ?>
