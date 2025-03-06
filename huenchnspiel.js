@@ -1,80 +1,120 @@
-// Hühnerspiel - überarbeitet mit neuer Grafik und Mechanik
+let currentBet = 0;
+let currentStep = 0;
+let maxSteps = 5;
+let gameActive = false;
 
-// Laden des Huhn-Bildes
-const chickenImg = new Image();
-chickenImg.src = "A_cartoon-style_chicken.png"; // Stelle sicher, dass das Bild im selben Ordner liegt wie die Datei!
+async function startGame() {
+  if(gameActive) return;
+  
+  const betAmount = parseInt(document.getElementById('betAmount').value);
+  if(betAmount < 1 || betAmount > 1000) {
+    alert('Ungültiger Einsatz! (1-1000 €)');
+    return;
+  }
 
-// Spielfeld-Setup
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+  // Einsatz vom Konto abziehen
+  const response = await fetch('trade.php', {
+    method: 'POST',
+    body: new URLSearchParams({
+      typ: 'huhn_bet',
+      bet: betAmount
+    })
+  });
+  
+  const data = await response.json();
+  if(!data.success) {
+    alert(data.message);
+    return;
+  }
 
-let chicken = {
-    x: 50,
-    y: canvas.height / 2,
-    width: 50,
-    height: 50,
-    speed: 5,
-    isHit: false
-};
+  document.getElementById('currentMoney').textContent = data.spielgeld;
+  currentBet = betAmount;
+  gameActive = true;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = false;
+  document.getElementById('cashOutBtn').disabled = false;
+  
+  // Straße mit Schritten zeichnen
+  const stepsDiv = document.getElementById('steps');
+  stepsDiv.innerHTML = '';
+  const roadWidth = document.getElementById('road').offsetWidth - 70;
+  for(let i = 0; i < maxSteps; i++) {
+    const step = document.createElement('div');
+    step.className = 'step';
+    step.style.left = `${10 + (roadWidth/maxSteps)*i}px`;
+    stepsDiv.appendChild(step);
+  }
 
-// Auto-Setup
-let car = {
-    x: canvas.width,
-    y: canvas.height / 2,
-    width: 70,
-    height: 40,
-    speed: 7
-};
-
-// Nachrichtenelement für Status-Anzeige
-const messageDiv = document.createElement('div');
-messageDiv.id = "message";
-messageDiv.style.position = "absolute";
-messageDiv.style.top = "10px";
-messageDiv.style.left = "50%";
-messageDiv.style.transform = "translateX(-50%)";
-messageDiv.style.fontSize = "24px";
-messageDiv.style.fontWeight = "bold";
-messageDiv.style.color = "red";
-document.body.appendChild(messageDiv);
-
-// Spiellogik
-function update() {
-    if (!chicken.isHit) {
-        chicken.x += chicken.speed;
-        car.x -= car.speed;
-    }
-
-    // Kollisionserkennung
-    if (chicken.x + chicken.width > car.x &&
-        chicken.x < car.x + car.width &&
-        chicken.y + chicken.height > car.y &&
-        chicken.y < car.y + car.height) {
-        
-        chicken.isHit = true;
-        messageDiv.innerText = "Oops! Das Huhn ist erschrocken!";
-        chickenImg.src = "A_cartoon-style_chicken.png";  // Bild für "erschrockenes" Huhn setzen
-    }
-
-    // Reset Auto
-    if (car.x + car.width < 0) {
-        car.x = canvas.width;
-    }
-
-    draw();
+  currentStep = 0;
+  updateChickenPosition();
 }
 
-// Zeichnen des Spiels
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function nextStep() {
+  if(!gameActive) return;
+  
+  // 50% Chance zu scheitern
+  if(Math.random() < 0.5) {
+    endGame(false);
+    return;
+  }
 
-    // Auto zeichnen (einfacher Platzhalter)
-    ctx.fillStyle = "blue";
-    ctx.fillRect(car.x, car.y, car.width, car.height);
+  currentStep++;
+  updateChickenPosition();
 
-    // Huhn zeichnen
-    ctx.drawImage(chickenImg, chicken.x, chicken.y, chicken.width, chicken.height);
+  if(currentStep >= maxSteps) {
+    endGame(true);
+  }
 }
 
-// Spiel-Loop
-setInterval(update, 1000 / 60);
+function cashOut() {
+  endGame(true);
+}
+
+function endGame(success) {
+  gameActive = false;
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('cashOutBtn').disabled = true;
+  
+  let winAmount = 0;
+  if(success) {
+    winAmount = currentBet * Math.pow(2, currentStep);
+    updateBalance(winAmount);
+  }
+
+  alert(success ? 
+    `Gewonnen! Ausgezahlt: ${winAmount} €` : 
+    'Verloren! Das Huhn wurde überfahren.');
+  
+  resetGame();
+}
+
+function updateBalance(amount) {
+  fetch('trade.php', {
+    method: 'POST',
+    body: new URLSearchParams({
+      typ: 'huhn_win',
+      amount: amount
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('currentMoney').textContent = data.spielgeld;
+  });
+}
+
+function updateChickenPosition() {
+  const chicken = document.getElementById('chicken');
+  const roadWidth = document.getElementById('road').offsetWidth - 70;
+  const stepSize = roadWidth / maxSteps;
+  chicken.style.left = `${10 + (stepSize * currentStep)}px`;
+  document.getElementById('currentWin').textContent = 
+    `${currentBet * Math.pow(2, currentStep)} €`;
+}
+
+function resetGame() {
+  currentBet = 0;
+  currentStep = 0;
+  document.getElementById('currentWin').textContent = '0 €';
+  document.getElementById('chicken').style.left = '10px';
+  document.getElementById('startBtn').disabled = false;
+}
