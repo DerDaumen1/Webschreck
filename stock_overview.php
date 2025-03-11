@@ -27,81 +27,209 @@ $stocks = $_SESSION['all_stocks'];
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Aktienübersicht</title>
+  <title>Aktienübersicht (mit Carousel)</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ---- Carousel-Container ---- */
+    .carousel-container {
+      position: relative;
+      width: 80%;         /* Breite der Gesamtfläche */
+      margin: 20px auto;
+      overflow: hidden;   /* Überstehende Karten werden versteckt */
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fff;
+    }
+
+    /* ---- Carousel-Wrapper ---- */
+    .carousel-wrapper {
+      display: flex;
+      transition: transform 0.4s ease;
+      /* enthält die Karten in einer Zeile */
+    }
+
+    /* Buttons zum Blättern */
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #666;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      opacity: 0.8;
+      font-size: 1.2em;
+      /* WICHTIG: Damit sie über dem Container liegen */
+      z-index: 9999;
+    }
+    .carousel-btn:hover {
+      opacity: 1;
+    }
+    #prevBtn {
+      left: 10px;
+    }
+    #nextBtn {
+      right: 10px;
+    }
+
+    /* ---- Einzelne Karten ---- */
+    .stock-card {
+      flex: 0 0 19%; /* 5 gleichzeitig => 100/5=20%, minimal weniger (19%) für Zwischenräume */
+      box-sizing: border-box;
+      margin: 0 0.5%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      background-color: #fafafa;
+      text-align: center;
+      min-height: 220px; /* gleiche Höhe */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stock-card h2 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    /* History-Container in jeder Karte */
+    .history-container {
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    .history-table th, .history-table td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .history-table th {
+      background-color: #f8f8f8;
+    }
+  </style>
 </head>
 <body>
 <header>
-  <h1>Aktienübersicht</h1>
+  <h1>Aktienübersicht (mit Carousel)</h1>
   <nav>
     <a href="index.php">Zur Startseite</a> |
     <a href="boersenspiel.php">Zum Börsenspiel</a>
   </nav>
 </header>
 
-<div class="cards-container">
-  <?php foreach ($stocks as $st): ?>
-    <div class="card">
-      <h2><?= htmlspecialchars($st['name']) ?></h2>
-      <p>Briefkurs: <?= number_format($st['briefkurs'],2,',','.') ?> €</p>
-      <p>Geldkurs: <?= number_format($st['geldkurs'],2,',','.') ?> €</p>
+<!-- Carousel-Container -->
+<div class="carousel-container">
+  <!-- Blätter-Buttons -->
+  <button id="prevBtn" class="carousel-btn">&lt;</button>
+  <button id="nextBtn" class="carousel-btn">&gt;</button>
 
-      <!-- Container für die History dieses Stocks -->
-      <h3>Letzte 10 Ticks</h3>
-      <div id="historyContainer-<?= $st['id'] ?>" style="min-height:80px;">
-        <!-- Hier wird per AJAX die Tabelle eingefügt -->
+  <!-- Wrapper für die Aktienkarten -->
+  <div class="carousel-wrapper" id="cardsWrapper">
+    <?php foreach ($stocks as $st): ?>
+      <div class="stock-card" id="card-<?= $st['id'] ?>">
+        <h2><?= htmlspecialchars($st['name']) ?></h2>
+        <p>Briefkurs: <?= number_format($st['briefkurs'],2,',','.') ?> €</p>
+        <p>Geldkurs: <?= number_format($st['geldkurs'],2,',','.') ?> €</p>
+        <h4>Letzte 10 Ticks</h4>
+        <!-- Container für die History dieses Stocks -->
+        <div id="historyContainer-<?= $st['id'] ?>" class="history-container">
+          <!-- Hier wird per AJAX die Tabelle eingefügt -->
+          <em>Lade Kursverlauf...</em>
+        </div>
       </div>
-    </div>
-  <?php endforeach; ?>
+    <?php endforeach; ?>
+  </div>
 </div>
 
 <script>
 // stocks: Array aller Aktien aus PHP
 const stocks = <?= json_encode($stocks) ?>;
 
-/**
- * Lädt pro Aktie (stock_id) die letzten 10 Ticks
- * und schreibt sie in #historyContainer-<stock_id>.
- */
+// Wir rufen diese Funktion auf, um alle History-Daten per AJAX zu laden
 function loadAllHistories() {
-  // Für jede Aktie einen AJAX-Call
   stocks.forEach(stock => {
     const stockId = stock.id;
     fetch("get_history.php?stock_id=" + stockId)
       .then(res => res.json())
       .then(data => {
         if (!data.success) {
-          console.error("Fehler beim Laden der History:", data.message);
+          console.error("Fehler beim Laden der History für Aktie " + stockId + ":", data.message);
           return;
         }
-        // Container für diese Aktie
         const container = document.getElementById("historyContainer-" + stockId);
-        if (!container) return; // Sicherheit
+        if (!container) return;
 
-        let html = "<table><tr><th>Datum</th><th>Kurs</th></tr>";
+        let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
         data.history.forEach(row => {
-          html += "<tr>"
-                + "<td>" + row.tick_time + "</td>"
-                + "<td>" + parseFloat(row.kurs).toFixed(2) + " €</td>"
-                + "</tr>";
+          html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
         });
-        html += "</table>";
-
+        html += "</tbody></table>";
         container.innerHTML = html;
       })
-      .catch(err => console.error("Fehler beim AJAX:", err));
+      .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId + ":", err));
   });
 }
 
-/**
- * Beim Laden der Seite:
- * 1) loadAllHistories() aufrufen
- * 2) optional: setInterval, um alle X Sekunden zu aktualisieren
- */
+// Carousel-Logik:
+const cardsWrapper = document.getElementById("cardsWrapper");
+const totalCards = stocks.length;
+const cardsPerPage = 5;
+const totalPages = Math.ceil(totalCards / cardsPerPage);
+
+let currentIndex = 0; // Start (Seite 0)
+
+// Buttons
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+function showPage(index) {
+  const offset = -index * 100; 
+  cardsWrapper.style.transform = `translateX(${offset}%)`;
+  updateArrows(); // Pfeil-Farben aktualisieren
+}
+
+function updateArrows() {
+  if (currentIndex <= 0) {
+    prevBtn.style.backgroundColor = "#666"; // Grau (links nicht scrollbar)
+  } else {
+    prevBtn.style.backgroundColor = "orange"; // Links aktiv
+  }
+
+  if (currentIndex >= totalPages - 1) {
+    nextBtn.style.backgroundColor = "#666"; // Grau (rechts nicht scrollbar)
+  } else {
+    nextBtn.style.backgroundColor = "orange"; // Rechts aktiv
+  }
+}
+
+
+
+// Seite initial aufrufen
 document.addEventListener("DOMContentLoaded", () => {
   loadAllHistories();
-  // Alle 10 Sekunden neu laden:
-  // setInterval(loadAllHistories, 10000);
+  showPage(0);
+  updateArrows(); // Initialen Pfeil-Zustand setzen
+});
+
+
+// Klick-Events
+prevBtn.addEventListener("click", () => {
+  if (currentIndex > 0) {
+    currentIndex--;
+    showPage(currentIndex);
+  }
+});
+nextBtn.addEventListener("click", () => {
+  if (currentIndex < totalPages - 1) {
+    currentIndex++;
+    showPage(currentIndex);
+  }
 });
 </script>
 </body>
