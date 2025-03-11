@@ -30,6 +30,9 @@ function initGame() {
   setInterval(updateKurs, 1000);
   setInterval(updateGameTimer, 1000);
 
+  // NEU: Alle 5 Sekunden History neu laden
+  setInterval(updateHistoryDisplay, 5000);
+
   // Beispielhaft 10 Stocks (kannst du auch aus der Session o.ä. laden):
   stocksArray = [
     { id: 1, name: "Mustermann AG", briefkurs: 100, geldkurs: 99 },
@@ -52,6 +55,7 @@ function initGame() {
   // Erstes Zeichnen + Anzeigen
   drawChart();
   updateAnzeigen();
+  updateHistoryDisplay();
 
   // Listener: Wenn der Nutzer eine andere Aktie auswählt
   document.getElementById('stockSelect').addEventListener('change', e => {
@@ -62,6 +66,7 @@ function initGame() {
     currentPhase = "";
     updateAnzeigen();
     drawChart();
+    updateHistoryDisplay();
   });
 }
 
@@ -175,6 +180,55 @@ function updateKurs() {
   // Zeichnen + Anzeigen
   drawChart();
   updateAnzeigen();
+
+  // JSON-Daten vorbereiten
+  let payload = {
+    stock_id: selectedStockId,    // z. B. 1
+    briefkurs: stock.briefkurs    // der neue Briefkurs
+  };
+
+  // AJAX-Call an update_stocks.php
+  fetch("update_stocks.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        console.error("Fehler beim Speichern des Kurses:", data.message);
+      }
+    })
+    .catch(err => console.error("Fehler beim AJAX-Aufruf:", err));
+
+  // Nach dem AJAX-Call an update_stocks.php: 
+  // Lade die aktualisierte Historie neu
+  updateHistoryDisplay();
+}
+
+/**
+ * Lädt per AJAX die letzten 10 Ticks der ausgewählten Aktie
+ * und schreibt sie in den Container #historyContainer.
+ */
+function updateHistoryDisplay() {
+  fetch("get_history.php?stock_id=" + selectedStockId)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        console.error("Fehler beim Laden der History:", data.message);
+        return;
+      }
+      const container = document.getElementById("historyContainer");
+      let html = "<table><tr><th>Tick-Time</th><th>Kurs</th></tr>";
+      data.history.forEach(row => {
+        html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    })
+    .catch(err => console.error("Fehler beim AJAX:", err));
 }
 
 /**
@@ -212,8 +266,7 @@ function drawChart() {
 
   for (let i = 0; i < points.length; i++) {
     let x = padding + i * scaleX;
-    // je größer der Kurs, desto weiter oben wollen wir die Linie 
-    // => (maxVal - points[i])
+    // je größer der Kurs, desto weiter oben soll die Linie sein
     let y = padding + (maxVal - points[i]) * scaleY;
 
     if (i === 0) {

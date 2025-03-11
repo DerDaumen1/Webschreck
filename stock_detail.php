@@ -44,6 +44,13 @@ $history = $_SESSION['stock_history'][$stock_id] ?? [];
   <h1>Details: <?= htmlspecialchars($stock['name']) ?></h1>
   <p>Aktueller Briefkurs: <?= number_format($stock['briefkurs'], 2, ',', '.') ?> €<br>
      Aktueller Geldkurs: <?= number_format($stock['geldkurs'], 2, ',', '.') ?> €</p>
+<!-- Direkt unter dem Bereich, in dem die aktuellen Kurse angezeigt werden -->
+<div class="card">
+  <h3>Kursverlauf der ausgewählten Aktie (letzte 10 Ticks)</h3>
+  <div id="historyContainer">
+    <!-- Hier wird per AJAX der Verlauf eingefügt -->
+  </div>
+</div>
 
   <h2>Letzte 10 Kurse (Briefkurse)</h2>
   <ul>
