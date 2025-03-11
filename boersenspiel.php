@@ -85,13 +85,25 @@ if (!isset($_SESSION['stock_history'])) {
 <div class="cards-container">
   <div class="card" style="width: 100%;">
     <h2>Kurse & Aktionen</h2>
-    <!-- Hier: Auswahl der Aktie -->
+   <!-- Aktienauswahl -->
+<div class="cards-container">
+  <div class="card" style="text-align:center;">
     <label for="stockSelect">Aktie wählen:</label>
     <select id="stockSelect">
-      <?php foreach($_SESSION['stocks'] as $s): ?>
-        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?></option>
-      <?php endforeach; ?>
+      <option value="1">Mustermann AG</option>
+      <option value="2">Beispiel AG</option>
+      <option value="3">Test Inc.</option>
+      <option value="4">MegaCorp</option>
+      <option value="5">Future Ltd.</option>
+      <option value="6">Sample GmbH</option>
+      <option value="7">Hallo AG</option>
+      <option value="8">World Ind.</option>
+      <option value="9">Börsenspiel SE</option>
+      <option value="10">Fantasy PLC</option>
     </select>
+  </div>
+</div>
+
 
     <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
     <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
