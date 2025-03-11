@@ -12,15 +12,14 @@ async function startGame() {
 
   // Validierung
   if (isNaN(betAmount)) {
-    alert('Ungültige Zahl!');
+    displayMessage('Ungültige Zahl!', 'error');
     return;
   }
 
   // Auf Cent-Schritte runden
   const roundedBet = Math.round(betAmount * 100) / 100;
-
   if (roundedBet < 0.01 || roundedBet > 1000) {
-    alert('Ungültiger Einsatz! (0,01-1000 €)');
+    displayMessage('Ungültiger Einsatz! (0,01-1000 €)', 'error');
     return;
   }
 
@@ -32,10 +31,9 @@ async function startGame() {
       bet: roundedBet.toFixed(2)
     })
   });
-
   const data = await response.json();
   if (!data.success) {
-    alert(data.message);
+    displayMessage(data.message, 'error');
     return;
   }
 
@@ -45,6 +43,7 @@ async function startGame() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('nextBtn').disabled = false;
   document.getElementById('cashOutBtn').disabled = false;
+  clearMessage();
 
   // Straße mit Schritten zeichnen
   const stepsDiv = document.getElementById('steps');
@@ -72,7 +71,6 @@ function nextStep() {
 
   currentStep++;
   updateChickenPosition();
-
   if (currentStep >= maxSteps) {
     endGame(true);
   }
@@ -87,17 +85,14 @@ function endGame(success) {
   document.getElementById('nextBtn').disabled = true;
   document.getElementById('cashOutBtn').disabled = true;
 
-  let winAmount = 0;
   if (success) {
-    winAmount = Math.round(currentBet * Math.pow(2, currentStep) * 100) / 100;
+    let winAmount = Math.round(currentBet * Math.pow(2, currentStep) * 100) / 100;
     updateBalance(winAmount);
+    displayMessage(`Gewonnen! Ausgezahlt: ${winAmount.toFixed(2).replace('.', ',')} €`, 'success');
+    resetGame();
+  } else {
+    displayCarAnimation();
   }
-
-  alert(success ?
-    `Gewonnen! Ausgezahlt: ${winAmount.toFixed(2).replace('.', ',')} €` :
-    'Verloren! Das Huhn wurde überfahren.');
-
-  resetGame();
 }
 
 function updateBalance(amount) {
@@ -119,6 +114,11 @@ function updateChickenPosition() {
   const roadWidth = document.getElementById('road').offsetWidth - 70;
   const stepSize = roadWidth / maxSteps;
   chicken.style.left = `${10 + (stepSize * currentStep)}px`;
+  // Hüpfen-Effekt hinzufügen
+  chicken.classList.add('hop');
+  setTimeout(() => {
+    chicken.classList.remove('hop');
+  }, 300);
   document.getElementById('currentWin').textContent =
     `${(currentBet * Math.pow(2, currentStep)).toFixed(2).replace('.', ',')} €`;
 }
@@ -129,4 +129,56 @@ function resetGame() {
   document.getElementById('currentWin').textContent = '0,00 €';
   document.getElementById('chicken').style.left = '10px';
   document.getElementById('startBtn').disabled = false;
+}
+
+function displayMessage(msg, type) {
+  const msgDiv = document.getElementById('gameMessage');
+  msgDiv.textContent = msg;
+  msgDiv.className = type; // 'success' oder 'error'
+}
+
+function clearMessage() {
+  const msgDiv = document.getElementById('gameMessage');
+  msgDiv.textContent = '';
+  msgDiv.className = '';
+}
+
+function displayCarAnimation() {
+  const road = document.getElementById('road');
+  const chicken = document.getElementById('chicken');
+  const car = document.createElement('div');
+  car.id = 'car';
+  car.style.left = '-100px';
+  road.appendChild(car);
+  let carInterval = setInterval(() => {
+    let pos = parseInt(car.style.left, 10);
+    if (pos < road.offsetWidth) {
+      car.style.left = (pos + 10) + 'px';
+      if (pos + 10 >= parseInt(chicken.style.left, 10)) {
+        clearInterval(carInterval);
+        displayExplosion(chicken);
+        setTimeout(() => {
+          car.remove();
+          resetGame();
+        }, 500);
+      }
+    } else {
+      clearInterval(carInterval);
+      resetGame();
+    }
+  }, 30);
+}
+
+function displayExplosion(chicken) {
+  chicken.style.visibility = 'hidden';
+  const explosion = document.createElement('div');
+  explosion.id = 'explosion';
+  explosion.style.left = chicken.style.left;
+  explosion.style.top = chicken.offsetTop + 'px';
+  document.getElementById('road').appendChild(explosion);
+  setTimeout(() => {
+    explosion.remove();
+    chicken.style.visibility = 'visible';
+    displayMessage('Verloren! Das Huhn wurde überfahren.', 'error');
+  }, 500);
 }

@@ -149,6 +149,17 @@ footer {
 
 #chicken {
   transition: left 0.5s ease-in-out;
+  image-rendering: pixelated;
+}
+
+/* Hop-Animation */
+@keyframes hop {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+.hop {
+  animation: hop 0.3s ease-out;
 }
 
 #nextBtn {
@@ -157,4 +168,45 @@ footer {
 
 #nextBtn:disabled {
   background: #ccc;
+}
+
+/* Auto-Element (für Verlust-Animation) */
+#car {
+  position: absolute;
+  bottom: 20px;
+  width: 60px;
+  height: 30px;
+  background: #333;
+  border: 2px solid #000;
+  border-radius: 3px;
+  image-rendering: pixelated;
+}
+
+/* Explosion-Animation */
+@keyframes explode {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+#explosion {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background: red;
+  border-radius: 50%;
+  animation: explode 0.5s forwards;
+  image-rendering: pixelated;
+}
+
+/* Inline-Meldungen */
+#gameMessage {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+}
+#gameMessage.success {
+  color: green;
+}
+#gameMessage.error {
+  color: red;
 }

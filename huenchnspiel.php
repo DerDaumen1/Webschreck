@@ -35,12 +35,26 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     }
     #chicken {
       transition: left 0.5s ease-in-out;
+      image-rendering: pixelated;
     }
     #nextBtn {
       background: #ff9800;
     }
     #nextBtn:disabled {
       background: #ccc;
+    }
+    /* Zusätzliche Styles für Inline-Meldungen */
+    #gameMessage {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+    }
+    #gameMessage.success {
+      color: green;
+    }
+    #gameMessage.error {
+      color: red;
     }
   </style>
 </head>
@@ -59,7 +73,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     
     <div class="form-group">
       <label for="betAmount">Einsatz (€):</label>
-      <input type="number" id="betAmount" min="1" max="1000" value="10">
+      <input type="number" id="betAmount" min="0.01" max="1000" step="0.01" value="10">
       <button class="btn" id="startBtn" onclick="startGame()">Starten</button>
       <button class="btn" id="nextBtn" onclick="nextStep()" disabled>Weiter!</button>
     </div>
@@ -81,6 +95,8 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       <p>Aktueller Gewinn: <span id="currentWin">0 €</span></p>
       <button class="btn" id="cashOutBtn" onclick="cashOut()" disabled>Ausbezahlen</button>
     </div>
+    <!-- Container für Inline-Meldungen -->
+    <div id="gameMessage"></div>
   </div>
 </div>
 
