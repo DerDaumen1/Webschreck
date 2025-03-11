@@ -7,6 +7,9 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
+// Benutzer-ID aus der Session (wichtig für Bestandsabfrage)
+$user_id = $_SESSION['user_id'] ?? 0;
+
 // Falls stocks noch nicht gesetzt, initialisieren wir z. B. 10 Musteraktien
 if (!isset($_SESSION['stocks'])) {
     $_SESSION['stocks'] = [
@@ -18,10 +21,11 @@ if (!isset($_SESSION['stocks'])) {
       [ 'id'=>6, 'name'=>'Sample GmbH',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
       [ 'id'=>7, 'name'=>'Hallo AG',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
       [ 'id'=>8, 'name'=>'World Ind.',    'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>9, 'name'=>'Börsenspiel SE', 'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>9, 'name'=>'Börsenspiel SE','briefkurs'=>100.0, 'geldkurs'=>99.0 ],
       [ 'id'=>10,'name'=>'Fantasy PLC',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ]
     ];
 }
+
 // Ebenfalls eine Session-Struktur für die Historie (letzte 10 Kurse)
 if (!isset($_SESSION['stock_history'])) {
   $_SESSION['stock_history'] = [];
@@ -29,8 +33,6 @@ if (!isset($_SESSION['stock_history'])) {
     $_SESSION['stock_history'][$s['id']] = [100.0]; // Start-Kurs in History
   }
 }
-
-// Ab hier nur noch HTML
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -57,7 +59,7 @@ if (!isset($_SESSION['stock_history'])) {
 </div>
 
 <div class="cards-container">
-  <!-- Chart, Meldung, Info-Box wie gehabt -->
+  <!-- Chart, Meldung, Info-Box -->
   <div class="card">
     <canvas id="chartCanvas" width="700" height="300"></canvas>
   </div>
@@ -66,13 +68,26 @@ if (!isset($_SESSION['stock_history'])) {
     <div class="meldung" id="meldungDisplay"></div>
 
     <ul class="info-list">
-      <li><strong>Aktuelles Spielgeld:</strong> <span id="spielgeldDisplay">
-        <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?></span> €
+      <li>
+        <strong>Aktuelles Spielgeld:</strong>
+        <span id="spielgeldDisplay">
+          <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?>
+        </span> €
       </li>
-      <li><strong>Gesamt-Aktien (alter Wert):</strong> <span id="aktienDepotDisplay">
-        <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
+      <li>
+        <strong>Gesamt-Aktien (alter Wert):</strong>
+        <span id="aktienDepotDisplay">
+          <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+        </span>
       </li>
-      <li><strong>Aktueller Gewinn/Verlust:</strong> <span id="profitDisplay" class="profit-positive">0,00</span> €
+      <!-- NEU: Aktueller Bestand der ausgewählten Aktie -->
+      <li>
+        <strong>Aktueller Bestand (gewählte Aktie):</strong>
+        <span id="aktienBestandDisplay">0</span> Stück
+      </li>
+      <li>
+        <strong>Aktueller Gewinn/Verlust:</strong>
+        <span id="profitDisplay" class="profit-positive">0,00</span> €
       </li>
     </ul>
 
@@ -85,25 +100,25 @@ if (!isset($_SESSION['stock_history'])) {
 <div class="cards-container">
   <div class="card" style="width: 100%;">
     <h2>Kurse & Aktionen</h2>
-   <!-- Aktienauswahl -->
-<div class="cards-container">
-  <div class="card" style="text-align:center;">
-    <label for="stockSelect">Aktie wählen:</label>
-    <select id="stockSelect">
-      <option value="1">Mustermann AG</option>
-      <option value="2">Beispiel AG</option>
-      <option value="3">Test Inc.</option>
-      <option value="4">MegaCorp</option>
-      <option value="5">Future Ltd.</option>
-      <option value="6">Sample GmbH</option>
-      <option value="7">Hallo AG</option>
-      <option value="8">World Ind.</option>
-      <option value="9">Börsenspiel SE</option>
-      <option value="10">Fantasy PLC</option>
-    </select>
-  </div>
-</div>
-
+    <!-- Aktienauswahl -->
+    <div class="cards-container">
+      <div class="card" style="text-align:center;">
+        <label for="stockSelect">Aktie wählen:</label>
+        <!-- onchange ruft updateStockHolding() auf -->
+        <select id="stockSelect" onchange="updateStockHolding();">
+          <option value="1">Mustermann AG</option>
+          <option value="2">Beispiel AG</option>
+          <option value="3">Test Inc.</option>
+          <option value="4">MegaCorp</option>
+          <option value="5">Future Ltd.</option>
+          <option value="6">Sample GmbH</option>
+          <option value="7">Hallo AG</option>
+          <option value="8">World Ind.</option>
+          <option value="9">Börsenspiel SE</option>
+          <option value="10">Fantasy PLC</option>
+        </select>
+      </div>
+    </div>
 
     <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
     <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
@@ -124,5 +139,27 @@ if (!isset($_SESSION['stock_history'])) {
 
 <!-- Externe JavaScript-Datei laden -->
 <script src="boerse.js"></script>
+
+<!-- Kleines Inline-Script, um den Bestand der gewählten Aktie zu laden und zu aktualisieren -->
+<script>
+function updateStockHolding() {
+  const stockId = document.getElementById("stockSelect").value;
+  fetch("get_holding.php?stock_id=" + stockId)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("aktienBestandDisplay").textContent = data.bestand;
+      } else {
+        console.error("Fehler beim Laden des Bestandes:", data.message);
+      }
+    })
+    .catch(err => console.error("Fehler beim AJAX-Aufruf:", err));
+}
+
+// Rufe updateStockHolding() auch beim Laden der Seite auf, um den Bestand initial anzuzeigen
+document.addEventListener("DOMContentLoaded", () => {
+  updateStockHolding();
+});
+</script>
 </body>
 </html>

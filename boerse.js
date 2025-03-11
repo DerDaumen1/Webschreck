@@ -2,25 +2,22 @@
  * Globale Variablen (mit Stocks und zusätzlicher Kurs-Historie)
  ************************************************************/
 let stocksArray = [];
-// Dictionary, das für jede Stock-ID ein Array an Kurswerten speichert
-let stockHistory = {};
+let stockHistory = {};  // Speichert den Verlauf pro Aktie
 
 // Standard: Nutzer sieht Aktie ID=1 zuerst (Mustermann AG)
 let selectedStockId = 1;
 let ctx, chartCanvas;
 
-// Bullen-/Bärenmarkt-Zähler und Phase gelten nur für die AKTUELLE Aktie
 let consecutiveUps = 0;
 let consecutiveDowns = 0;
 let currentPhase = "";
 
-let gameTimerSeconds = 600; // z. B. 10 Minuten
-let updateInterval;         // Handle für setInterval(updateAllKurse)
+let gameTimerSeconds = 600; // 10 Minuten Spielzeit
+let updateInterval;         // Handle für updateAllKurse
 
 /**
  * Wird beim Laden der Seite (onload) ausgeführt.
- * Initialisiert Canvas, startet Hintergrund-Update (für alle Aktien),
- * Timer und History-Reload.
+ * Initialisiert Canvas, startet Hintergrund-Updates, Timer und History-Reload.
  */
 function initGame() {
   chartCanvas = document.getElementById("chartCanvas");
@@ -30,14 +27,12 @@ function initGame() {
 
   // Starte Hintergrund-Updates (alle Aktien, jede Sekunde)
   updateInterval = setInterval(updateAllKurse, 1000);
-
   // Countdown-Timer
   setInterval(updateGameTimer, 1000);
-
-  // Alle 5 Sekunden History neu laden (für aktuell ausgewählte Aktie)
+  // Alle 5 Sekunden: History der aktuell ausgewählten Aktie neu laden
   setInterval(updateHistoryDisplay, 5000);
 
-  // Beispielhaft 10 Stocks
+  // Beispielhaft 10 Aktien
   stocksArray = [
     { id: 1, name: "Mustermann AG", briefkurs: 100, geldkurs: 99 },
     { id: 2, name: "Beispiel AG", briefkurs: 100, geldkurs: 99 },
@@ -60,17 +55,18 @@ function initGame() {
   drawChart();
   updateAnzeigen();
   updateHistoryDisplay();
+  updateStockHolding();  // Bestand der aktuell gewählten Aktie initial laden
 
-  // Listener: Wenn der Nutzer eine andere Aktie auswählt
+  // Listener: Wenn der Nutzer eine andere Aktie auswählt, werden Chart und Bestand neu geladen
   document.getElementById('stockSelect').addEventListener('change', e => {
     selectedStockId = parseInt(e.target.value);
-    // Reset für Bullen-/Bären-Zähler, falls man eine andere Aktie wählt
     consecutiveUps = 0;
     consecutiveDowns = 0;
     currentPhase = "";
     updateAnzeigen();
     drawChart();
     updateHistoryDisplay();
+    updateStockHolding();
   });
 
   // Beim Verlassen der Seite Updates stoppen
@@ -80,92 +76,28 @@ function initGame() {
 }
 
 /**
- * Aktualisiert alle Aktien: Für jede Aktie wird ein neuer Kurs berechnet,
- * in stockHistory gepusht und per AJAX in DB geschrieben.
- * Nur für die 'selectedStockId' wird die Bullen-/Bärenmarkt-Logik geführt.
+ * Aktualisiert den aktuellen Bestand der ausgewählten Aktie per AJAX.
+ * Erwartet, dass get_holding.php den Bestand als JSON liefert.
  */
-function updateAllKurse() {
-  stocksArray.forEach(stock => {
-    let chanceUp = 0.5;
-
-    // Nur für die aktuell ausgewählte Aktie => Bullen-/Bärenmarkt-Logik
-    if (stock.id === selectedStockId) {
-      if (currentPhase === "Bullenmarkt") chanceUp = 0.75;
-      if (currentPhase === "Bärenmarkt") chanceUp = 0.25;
-    }
-
-    let delta = Math.random() * 0.04 + 0.01; // 0.01..0.05
-    let rand = Math.random();
-
-    // Kurs steigt / fällt
-    if (rand < chanceUp) {
-      stock.briefkurs += delta;
-      stock.geldkurs += delta;
-
-      // Bullen-/Bären-Zähler nur für die ausgewählte Aktie
-      if (stock.id === selectedStockId) {
-        consecutiveUps++;
-        consecutiveDowns = 0;
-      }
-    } else {
-      stock.briefkurs -= delta;
-      stock.geldkurs -= delta;
-
-      if (stock.id === selectedStockId) {
-        consecutiveDowns++;
-        consecutiveUps = 0;
-      }
-    }
-
-    // Sicherheitscheck
-    if (stock.briefkurs < 0.01) stock.briefkurs = 0.01;
-    if (stock.geldkurs < 0) stock.geldkurs = 0;
-
-    // Marktphasen-Ermittlung nur für ausgewählte Aktie
-    if (stock.id === selectedStockId) {
-      if (consecutiveUps >= 3) {
-        currentPhase = "Bullenmarkt";
-      } else if (consecutiveDowns >= 3) {
-        currentPhase = "Bärenmarkt";
+function updateStockHolding() {
+  fetch("get_holding.php?stock_id=" + selectedStockId)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById("aktienBestandDisplay").textContent = data.bestand;
       } else {
-        currentPhase = "";
+        console.error("Fehler beim Laden des Bestandes:", data.message);
       }
-    }
-
-    // In stockHistory pushen (max. 10)
-    stockHistory[stock.id].push(stock.briefkurs);
-    if (stockHistory[stock.id].length > 10) {
-      stockHistory[stock.id].shift();
-    }
-
-    // AJAX in DB
-    let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
-    fetch("update_stocks.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
     })
-      .then(r => r.json())
-      .then(d => {
-        if (!d.success) {
-          console.error("Fehler beim Speichern in DB:", d.message);
-        }
-      })
-      .catch(err => console.error("AJAX-Fehler:", err));
-  });
-
-  // Chart & Anzeigen für "selectedStockId" aktualisieren
-  drawChart();
-  updateAnzeigen();
-  // Optional: updateHistoryDisplay();
+    .catch(err => console.error("Fehler beim AJAX-Aufruf:", err));
 }
 
 /**
- * AJAX-Funktion zum Kaufen / Verkaufen / Beenden für die aktuell ausgewählte Aktie
+ * AJAX-Funktion zum Kaufen / Verkaufen / Beenden.
+ * Nach einem erfolgreichen Trade wird updateStockHolding() aufgerufen.
  */
 function trade(action) {
   const anzahl = document.getElementById("anzahlInput").value;
-
   const stock = stocksArray.find(s => s.id === selectedStockId);
   if (!stock) {
     alert("Aktie nicht gefunden!");
@@ -186,16 +118,15 @@ function trade(action) {
     .then(res => res.json())
     .then(data => {
       document.getElementById("meldungDisplay").innerHTML = data.message || "";
-
       if (data.success) {
         document.getElementById("spielgeldDisplay").textContent =
           parseFloat(data.spielgeld).toFixed(2).replace('.', ',');
+        // Bestand nach einem erfolgreichen Trade neu laden
+        updateStockHolding();
       }
-
       if (action === 'beenden' && data.success) {
         gameTimerSeconds = 0;
       }
-
       updateAnzeigen();
     })
     .catch(err => {
@@ -205,7 +136,76 @@ function trade(action) {
 }
 
 /**
- * Lädt die letzten 10 Ticks der aktuell ausgewählten Aktie
+ * Aktualisiert alle Aktien: Für jede Aktie wird ein neuer Kurs berechnet,
+ * in stockHistory gepusht und per AJAX in DB gespeichert.
+ * Nur für die ausgewählte Aktie wird die Bullen-/Bärenmarkt-Logik geführt.
+ */
+function updateAllKurse() {
+  stocksArray.forEach(stock => {
+    let chanceUp = 0.5;
+    if (stock.id === selectedStockId) {
+      if (currentPhase === "Bullenmarkt") chanceUp = 0.75;
+      if (currentPhase === "Bärenmarkt") chanceUp = 0.25;
+    }
+
+    let delta = Math.random() * 0.04 + 0.01;
+    let rand = Math.random();
+
+    if (rand < chanceUp) {
+      stock.briefkurs += delta;
+      stock.geldkurs += delta;
+      if (stock.id === selectedStockId) {
+        consecutiveUps++;
+        consecutiveDowns = 0;
+      }
+    } else {
+      stock.briefkurs -= delta;
+      stock.geldkurs -= delta;
+      if (stock.id === selectedStockId) {
+        consecutiveDowns++;
+        consecutiveUps = 0;
+      }
+    }
+
+    if (stock.briefkurs < 0.01) stock.briefkurs = 0.01;
+    if (stock.geldkurs < 0) stock.geldkurs = 0;
+
+    if (stock.id === selectedStockId) {
+      if (consecutiveUps >= 3) {
+        currentPhase = "Bullenmarkt";
+      } else if (consecutiveDowns >= 3) {
+        currentPhase = "Bärenmarkt";
+      } else {
+        currentPhase = "";
+      }
+    }
+
+    stockHistory[stock.id].push(stock.briefkurs);
+    if (stockHistory[stock.id].length > 10) {
+      stockHistory[stock.id].shift();
+    }
+
+    let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
+    fetch("update_stocks.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.success) {
+          console.error("Fehler beim Speichern in DB:", d.message);
+        }
+      })
+      .catch(err => console.error("AJAX-Fehler:", err));
+  });
+
+  drawChart();
+  updateAnzeigen();
+}
+
+/**
+ * Lädt per AJAX die letzten 10 Ticks der aktuell ausgewählten Aktie
  * und schreibt sie in den Container #historyContainer.
  */
 function updateHistoryDisplay() {
@@ -232,7 +232,6 @@ function updateHistoryDisplay() {
  */
 function drawChart() {
   if (!chartCanvas || !ctx) return;
-
   const points = stockHistory[selectedStockId];
   if (!points || points.length === 0) return;
 
@@ -280,7 +279,6 @@ function updateAnzeigen() {
   document.getElementById("geldkursDisplay").textContent =
     "Geldkurs: " + stock.geldkurs.toFixed(2) + " €";
 
-  // Marktphase
   const mp = document.getElementById("marketPhaseDisplay");
   if (currentPhase === "Bullenmarkt") {
     mp.textContent = "Bullenmarkt (Chance auf Steigerung: 75%)";
@@ -292,11 +290,9 @@ function updateAnzeigen() {
     mp.textContent = "";
   }
 
-  // Gewinn/Verlust live berechnen (nur für die "eine" Aktie).
   let spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
   let spielgeld = parseFloat(spielgeldText) || 0;
   let depotAnz = parseInt(document.getElementById("aktienDepotDisplay").textContent) || 0;
-
   let liveProfit = (spielgeld + depotAnz * stock.geldkurs) - 50000;
   const profitEl = document.getElementById("profitDisplay");
   let profitText = liveProfit.toFixed(2).replace('.', ',');
@@ -312,7 +308,7 @@ function updateAnzeigen() {
 }
 
 /**
- * Countdown-Timer
+ * Aktualisiert den Countdown-Timer
  */
 function updateGameTimer() {
   if (gameTimerSeconds <= 0) return;
@@ -327,6 +323,3 @@ function updateGameTimer() {
   let text = `Verbleibende Spielzeit: ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')} min`;
   document.getElementById("timerDisplay").textContent = text;
 }
-
-
-

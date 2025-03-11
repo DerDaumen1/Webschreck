@@ -6,19 +6,30 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
+// 1) user_id aus Session laden (wichtig, um Bestände pro Benutzer anzuzeigen)
+$user_id = $_SESSION['user_id'] ?? 0;
+
+// 2) DB-Verbindung herstellen
+try {
+    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("DB-Verbindung fehlgeschlagen: " . $e->getMessage());
+}
+
 // Minimal-Demo: Falls noch keine Stocks in der Session sind
 if (!isset($_SESSION['all_stocks'])) {
     $_SESSION['all_stocks'] = [
-      ["id"=>1, "name"=>"Mustermann AG",  "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>2, "name"=>"Beispiel AG",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>3, "name"=>"Test Inc.",      "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>4, "name"=>"MegaCorp",       "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>5, "name"=>"Future Ltd.",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>6, "name"=>"Sample GmbH",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>7, "name"=>"Hallo AG",       "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>8, "name"=>"World Ind.",     "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>9, "name"=>"Börsenspiel SE", "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>10,"name"=>"Fantasy PLC",    "briefkurs"=>100, "geldkurs"=>99]
+      ["id"=>1,  "name"=>"Mustermann AG",  "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>2,  "name"=>"Beispiel AG",    "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>3,  "name"=>"Test Inc.",      "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>4,  "name"=>"MegaCorp",       "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>5,  "name"=>"Future Ltd.",    "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>6,  "name"=>"Sample GmbH",    "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>7,  "name"=>"Hallo AG",       "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>8,  "name"=>"World Ind.",     "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>9,  "name"=>"Börsenspiel SE", "briefkurs"=>100, "geldkurs"=>99],
+      ["id"=>10, "name"=>"Fantasy PLC",    "briefkurs"=>100, "geldkurs"=>99]
     ];
 }
 $stocks = $_SESSION['all_stocks'];
@@ -33,9 +44,9 @@ $stocks = $_SESSION['all_stocks'];
     /* ---- Carousel-Container ---- */
     .carousel-container {
       position: relative;
-      width: 80%;         /* Breite der Gesamtfläche */
+      width: 80%;
       margin: 20px auto;
-      overflow: hidden;   /* Überstehende Karten werden versteckt */
+      overflow: hidden;
       border: 1px solid #ddd;
       border-radius: 8px;
       padding: 10px;
@@ -46,7 +57,6 @@ $stocks = $_SESSION['all_stocks'];
     .carousel-wrapper {
       display: flex;
       transition: transform 0.4s ease;
-      /* enthält die Karten in einer Zeile */
     }
 
     /* Buttons zum Blättern */
@@ -63,22 +73,21 @@ $stocks = $_SESSION['all_stocks'];
       cursor: pointer;
       opacity: 0.8;
       font-size: 1.2em;
-      /* WICHTIG: Damit sie über dem Container liegen */
       z-index: 9999;
     }
     .carousel-btn:hover {
       opacity: 1;
     }
     #prevBtn {
-      left: 10px;
+      left: 1px;
     }
     #nextBtn {
-      right: 10px;
+      right: 1px;
     }
 
     /* ---- Einzelne Karten ---- */
     .stock-card {
-      flex: 0 0 19%; /* 5 gleichzeitig => 100/5=20%, minimal weniger (19%) für Zwischenräume */
+      flex: 0 0 19%;
       box-sizing: border-box;
       margin: 0 0.5%;
       border: 1px solid #ccc;
@@ -86,7 +95,7 @@ $stocks = $_SESSION['all_stocks'];
       padding: 10px;
       background-color: #fafafa;
       text-align: center;
-      min-height: 220px; /* gleiche Höhe */
+      min-height: 220px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .stock-card h2 {
@@ -134,12 +143,35 @@ $stocks = $_SESSION['all_stocks'];
     <?php foreach ($stocks as $st): ?>
       <div class="stock-card" id="card-<?= $st['id'] ?>">
         <h2><?= htmlspecialchars($st['name']) ?></h2>
+
+        <?php
+        // 3) BESTANDSABFRAGE: (kaufen - verkaufen) pro user_id + stock_name
+        $stmt = $pdo->prepare("
+          SELECT 
+            COALESCE(SUM(CASE WHEN order_type = 'buy' THEN anzahl ELSE 0 END), 0)
+            - COALESCE(SUM(CASE WHEN order_type = 'sell' THEN anzahl ELSE 0 END), 0)
+            AS bestand
+          FROM orders
+          WHERE user_id = :uid
+            AND stock_name = :sname
+        ");
+        $stmt->execute([
+          'uid' => $user_id,
+          'sname' => $st['name']
+        ]);
+        $bestand = (int)$stmt->fetchColumn();
+        ?>
+        <!-- Bestand ausgeben -->
+        <p>Aktueller Bestand: <?= $bestand ?> Stück</p>
+
+        <!-- Optional: (Brief-/Geldkurs sind ja auskommentiert, du kannst sie bei Bedarf wieder aktivieren) -->
+        <!--
         <p>Briefkurs: <?= number_format($st['briefkurs'],2,',','.') ?> €</p>
         <p>Geldkurs: <?= number_format($st['geldkurs'],2,',','.') ?> €</p>
-        <h4>Letzte 10 Ticks</h4>
-        <!-- Container für die History dieses Stocks -->
+        -->
+
+        <h4>Letzte 10 Tage</h4>
         <div id="historyContainer-<?= $st['id'] ?>" class="history-container">
-          <!-- Hier wird per AJAX die Tabelle eingefügt -->
           <em>Lade Kursverlauf...</em>
         </div>
       </div>
@@ -167,6 +199,7 @@ function loadAllHistories() {
 
         let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
         data.history.forEach(row => {
+          // Syntaxfehler fixen: Backticks statt <tr><td>...
           html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
         });
         html += "</tbody></table>";
@@ -208,15 +241,12 @@ function updateArrows() {
   }
 }
 
-
-
 // Seite initial aufrufen
 document.addEventListener("DOMContentLoaded", () => {
   loadAllHistories();
   showPage(0);
   updateArrows(); // Initialen Pfeil-Zustand setzen
 });
-
 
 // Klick-Events
 prevBtn.addEventListener("click", () => {
