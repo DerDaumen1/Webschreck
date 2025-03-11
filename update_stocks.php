@@ -8,7 +8,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
-// Wir geben JSON zurück
+// JSON-Header setzen
 header('Content-Type: application/json');
 
 // DB-Verbindung herstellen
@@ -16,12 +16,11 @@ try {
     $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    // Schlägt die Verbindung fehl, geben wir eine JSON-Fehlermeldung
     echo json_encode(["success" => false, "message" => "DB-Fehler: " . $e->getMessage()]);
     exit;
 }
 
-// Daten empfangen (JSON):
+// JSON-Daten empfangen
 $data = json_decode(file_get_contents("php://input"), true);
 if (!$data || !isset($data['stock_id']) || !isset($data['briefkurs'])) {
     echo json_encode(["success" => false, "message" => "Fehlende Parameter (stock_id, briefkurs)"]);
@@ -32,12 +31,25 @@ $stockId   = (int)$data['stock_id'];
 $briefkurs = (float)$data['briefkurs'];
 
 try {
+    // Ermittle den letzten tick_time-Wert für diese Aktie
+    $stmt = $pdo->prepare("SELECT MAX(tick_time) AS last_tick FROM stock_history WHERE stock_id = ?");
+    $stmt->execute([$stockId]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result && $result['last_tick']) {
+        // Neuer Zeitpunkt: Letzter Tick + 1 Tag
+        $newTickTime = date("Y-m-d H:i:s", strtotime($result['last_tick'] . " +1 day"));
+    } else {
+        // Falls kein Eintrag vorhanden, verwende NOW()
+        $newTickTime = date("Y-m-d H:i:s");
+    }
+
     // 1) In stock_history einfügen
     $ins = $pdo->prepare("
       INSERT INTO stock_history (stock_id, tick_time, kurs)
-      VALUES (?, NOW(), ?)
+      VALUES (?, ?, ?)
     ");
-    $ins->execute([$stockId, $briefkurs]);
+    $ins->execute([$stockId, $newTickTime, $briefkurs]);
 
     // 2) Nur die letzten 10 Einträge behalten
     $countStmt = $pdo->prepare("SELECT COUNT(*) FROM stock_history WHERE stock_id = ?");
@@ -45,28 +57,27 @@ try {
     $total = $countStmt->fetchColumn();
 
     if ($total > 10) {
-        // Zu viele Einträge -> die ältesten löschen
-        $toDelete = $total - 10;
-        $del = $pdo->prepare("
-          DELETE FROM stock_history
-          WHERE stock_id = ?
-          ORDER BY tick_time ASC
-          LIMIT $toDelete
+        // Lösche die ältesten Einträge, sodass nur die 10 neuesten übrig bleiben.
+        $delStmt = $pdo->prepare("
+            DELETE FROM stock_history
+            WHERE stock_id = ? AND id NOT IN (
+                SELECT id FROM (
+                    SELECT id FROM stock_history WHERE stock_id = ? ORDER BY tick_time DESC LIMIT 10
+                ) as tmp
+            )
         ");
-        $del->execute([$stockId]);
+        $delStmt->execute([$stockId, $stockId]);
     }
 
-    // (Optional) Wenn du eine Tabelle 'stocks' hast, um den aktuellen Kurs zu speichern:
+    // 3) Optional: Aktualisiere in der Tabelle stocks (falls vorhanden) den aktuellen Kurs
     $upd = $pdo->prepare("
       UPDATE stocks SET aktueller_kurs = ?
       WHERE id = ?
     ");
     $upd->execute([$briefkurs, $stockId]);
 
-    // Erfolgsmeldung
     echo json_encode(["success" => true, "message" => "Kurs gespeichert"]);
 } catch (PDOException $e) {
-    // Falls beim Einfügen oder Updaten ein Fehler auftritt
     echo json_encode(["success" => false, "message" => $e->getMessage()]);
     exit;
 }
