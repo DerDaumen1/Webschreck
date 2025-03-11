@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     header('Location: registrierung.php');
@@ -11,52 +11,6 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
   <meta charset="UTF-8">
   <title>Hühner-Roulette</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    #gameContainer {
-      max-width: 600px;
-      margin: 2rem auto;
-      text-align: center;
-    }
-    #road {
-      width: 100%;
-      height: 100px;
-      background: #4CAF50;
-      position: relative;
-      margin: 2rem 0;
-      border-radius: 5px;
-    }
-    .step {
-      position: absolute;
-      bottom: 10px;
-      width: 2px;
-      height: 20px;
-      background: white;
-      opacity: 0.5;
-    }
-    #chicken {
-      transition: left 0.5s ease-in-out;
-      image-rendering: pixelated;
-    }
-    #nextBtn {
-      background: #ff9800;
-    }
-    #nextBtn:disabled {
-      background: #ccc;
-    }
-    /* Zusätzliche Styles für Inline-Meldungen */
-    #gameMessage {
-      margin-top: 1rem;
-      text-align: center;
-      font-size: 1.2rem;
-      padding: 0.5rem;
-    }
-    #gameMessage.success {
-      color: green;
-    }
-    #gameMessage.error {
-      color: red;
-    }
-  </style>
 </head>
 <body>
 <header>
@@ -79,14 +33,8 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     </div>
 
     <div id="road">
-      <!-- Huhn als SVG -->
-      <svg id="chicken" width="50" height="50" style="position:absolute; left:10px; bottom:10px;">
-        <circle cx="25" cy="25" r="20" fill="yellow" />
-        <circle cx="15" cy="20" r="3" fill="black" />
-        <circle cx="35" cy="20" r="3" fill="black" />
-        <path d="M15 35 Q25 40 35 35" stroke="black" fill="none" />
-      </svg>
-      
+      <!-- Detailliertes Huhn-Bild -->
+      <img id="chicken" src="chicken.png" alt="Huhn">
       <!-- Schritt-Markierungen -->
       <div id="steps"></div>
     </div>
