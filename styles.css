@@ -14,11 +14,11 @@ body {
   margin: 0 auto;
 }
 
-/* Header */
+/* Header (Blauer Balken) */
 header {
   background-color: #0d6efd; /* Kräftiger Blauton */
   color: #fff;
-  padding: 2rem 0;
+  padding: 1.5rem 0;
 }
 .header-container {
   display: flex;
@@ -46,7 +46,7 @@ header {
 }
 .header-center h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 .header-center p {
   margin: 0.5rem 0 0;
@@ -63,7 +63,7 @@ header {
   font-size: 0.9rem;
 }
 
-/* Main Content (Cards) - für index.php */
+/* Startseite / Index: Cards etc. */
 .cards-container {
   display: flex;
   flex-wrap: wrap;
@@ -76,21 +76,41 @@ header {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
-  flex: 1 1 300px;
-  max-width: 350px;
   text-align: center;
+  flex: 1 1 300px;      /* Baseline: mind. 300px */
+  max-width: 500px;    /* Erhöht, damit es breiter wirkt */
 }
-.card h3 {
-  margin-top: 0;
-  font-size: 1.8rem;
-  color: #0d6efd;
+
+/* Spezifisch für Dreispalten-Layout im Börsenspiel */
+.three-columns {
+  flex-wrap: nowrap;         /* Alle Cards in einer Zeile, wenn Platz vorhanden */
+  justify-content: space-between;
 }
-.card p {
-  font-size: 1rem;
-  line-height: 1.5;
-  margin: 1rem 0;
+.three-columns .card {
+  flex: 1 1 30%;             /* 3 Cards nebeneinander bei großen Bildschirmen */
+  max-width: 700px;          /* Falls jemand einen ultrabreiten Bildschirm hat */
 }
+
+/* Jumbotron - falls z. B. in index/hunchenspiel genutzt (hier optional) */
+.jumbotron {
+  background: linear-gradient(135deg, #0d6efd, #66b2ff);
+  color: #fff;
+  padding: 3rem 1rem;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.jumbotron h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+.jumbotron p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Buttons */
 .card button {
+  margin-top: 0.5rem;
   padding: 0.75rem 1.5rem;
   background-color: #0d6efd;
   color: #fff;
@@ -116,7 +136,17 @@ footer {
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* Responsive Styles */
+@media (max-width: 1200px) {
+  .three-columns {
+    flex-wrap: wrap;
+  }
+  .three-columns .card {
+    flex: 1 1 400px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
 @media (max-width: 600px) {
   .header-container {
     flex-direction: column;
@@ -134,7 +164,7 @@ footer {
 }
 
 /* ------------------------------- */
-/* Hühnchenspiel- und Börsenspiel-spezifische Stile (unverändert) */
+/* Hühnchenspiel- und Börsenspiel-spezifische Stile */
 #gameContainer .btn {
   margin: 0.5rem;
   padding: 0.8rem 1.5rem;
@@ -225,18 +255,11 @@ footer {
   color: red;
 }
 
-/* ------------------------------- */
-/* Überschreibungsregeln für Game-Seiten (vollbild) */
-body.game-page #gameContainer {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-}
-body.game-page #gameContainer .card {
-  max-width: 100%;
-  width: 100%;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 1rem;
+/* -------------------------------------- */
+/* Neue Regel: Buttons in einer Zeile anordnen */
+.trade-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap; /* Falls auf kleineren Bildschirmen nicht genug Platz ist */
 }

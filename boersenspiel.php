@@ -44,103 +44,109 @@ if (!isset($_SESSION['stock_history'])) {
 <body onload="initGame();">
 
 <header>
-  <h1>Börsenspiel (AJAX-Version)</h1>
-  <nav>
-    <a href="index.php">Startseite</a> |
-    <a href="stock_overview.php">Aktienübersicht</a> |
-    <a href="orderbuch.php">Orderbuch</a> |
-    <a href="logout.php">Logout</a>
-  </nav>
+  <div class="header-container">
+    <div class="nav-left">
+      <a href="index.php">Startseite</a>
+      <a href="stock_overview.php">Aktienübersicht</a>
+      <a href="orderbuch.php">Orderbuch</a>
+      <a href="logout.php">Logout</a>
+    </div>
+    <div class="header-center">
+      <h1>Börsenspiel (AJAX-Version)</h1>
+      <p>Herzlich willkommen im Börsenspiel – Erleben Sie spielerisch die Welt des Aktienhandels!</p>
+    </div>
+    <div class="nav-right">
+      <span class="user-balance">
+        Spielgeld:
+        <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, ',', '.'); ?> €
+      </span>
+    </div>
+  </div>
 </header>
 
-<div class="jumbotron">
-  <h2>Herzlich willkommen im Börsenspiel!</h2>
-  <p>Erleben Sie spielerisch die Welt des Aktienhandels.</p>
-</div>
+<main class="boerse-main">
+  <!-- Drei breite Cards/Monitore nebeneinander (Chart, Info, Aktionen) -->
+  <div class="cards-container three-columns">
+    
+    <!-- Chart, Meldung, Info-Box -->
+    <div class="card">
+      <canvas id="chartCanvas" width="700" height="300"></canvas>
+    </div>
 
-<div class="cards-container">
-  <!-- Chart, Meldung, Info-Box -->
-  <div class="card">
-    <canvas id="chartCanvas" width="700" height="300"></canvas>
-  </div>
+    <div class="card" style="position: relative;">
+      <div class="meldung" id="meldungDisplay"></div>
+      <ul class="info-list">
+        <li>
+          <strong>Aktuelles Spielgeld:</strong>
+          <span id="spielgeldDisplay">
+            <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?>
+          </span> €
+        </li>
+        <li>
+          <strong>Gesamt-Aktien (alter Wert):</strong>
+          <span id="aktienDepotDisplay">
+            <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+          </span>
+        </li>
+        <li>
+          <strong>Aktueller Bestand (gewählte Aktie):</strong>
+          <span id="aktienBestandDisplay">0</span> Stück
+        </li>
+        <li>
+          <strong>Aktueller Gewinn/Verlust:</strong>
+          <span id="profitDisplay" class="profit-positive">0,00</span> €
+        </li>
+      </ul>
+      <div id="marketPhaseDisplay"></div>
+      <div id="timerDisplay"></div>
+    </div>
 
-  <div class="card" style="position: relative;">
-    <div class="meldung" id="meldungDisplay"></div>
+    <!-- Kauf/Verkauf-Steuerung -->
+    <div class="card" style="width: 100%;">
+      <h2>Kurse & Aktionen</h2>
+      <div class="cards-container" style="justify-content: center;">
+        <div class="card" style="text-align:center; max-width: 300px;">
+          <label for="stockSelect">Aktie wählen:</label>
+          <select id="stockSelect" onchange="updateStockHolding();">
+            <option value="1">Mustermann AG</option>
+            <option value="2">Beispiel AG</option>
+            <option value="3">Test Inc.</option>
+            <option value="4">MegaCorp</option>
+            <option value="5">Future Ltd.</option>
+            <option value="6">Sample GmbH</option>
+            <option value="7">Hallo AG</option>
+            <option value="8">World Ind.</option>
+            <option value="9">Börsenspiel SE</option>
+            <option value="10">Fantasy PLC</option>
+          </select>
+        </div>
+      </div>
 
-    <ul class="info-list">
-      <li>
-        <strong>Aktuelles Spielgeld:</strong>
-        <span id="spielgeldDisplay">
-          <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?>
-        </span> €
-      </li>
-      <li>
-        <strong>Gesamt-Aktien (alter Wert):</strong>
-        <span id="aktienDepotDisplay">
-          <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
-        </span>
-      </li>
-      <!-- NEU: Aktueller Bestand der ausgewählten Aktie -->
-      <li>
-        <strong>Aktueller Bestand (gewählte Aktie):</strong>
-        <span id="aktienBestandDisplay">0</span> Stück
-      </li>
-      <li>
-        <strong>Aktueller Gewinn/Verlust:</strong>
-        <span id="profitDisplay" class="profit-positive">0,00</span> €
-      </li>
-    </ul>
+      <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
+      <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
 
-    <div id="marketPhaseDisplay"></div>
-    <div id="timerDisplay"></div>
-  </div>
-</div>
-
-<!-- Kauf/Verkauf-Steuerung -->
-<div class="cards-container">
-  <div class="card" style="width: 100%;">
-    <h2>Kurse & Aktionen</h2>
-    <!-- Aktienauswahl -->
-    <div class="cards-container">
-      <div class="card" style="text-align:center;">
-        <label for="stockSelect">Aktie wählen:</label>
-        <!-- onchange ruft updateStockHolding() auf -->
-        <select id="stockSelect" onchange="updateStockHolding();">
-          <option value="1">Mustermann AG</option>
-          <option value="2">Beispiel AG</option>
-          <option value="3">Test Inc.</option>
-          <option value="4">MegaCorp</option>
-          <option value="5">Future Ltd.</option>
-          <option value="6">Sample GmbH</option>
-          <option value="7">Hallo AG</option>
-          <option value="8">World Ind.</option>
-          <option value="9">Börsenspiel SE</option>
-          <option value="10">Fantasy PLC</option>
-        </select>
+      <div class="form-group">
+        <label for="anzahlInput">Anzahl:</label>
+        <input type="number" id="anzahlInput" value="1" min="1" />
+        <!-- Hier haben wir nur den neuen Container trade-row eingefügt -->
+        <div class="trade-row">
+          <button class="btn" onclick="trade('kaufen')">Aktien kaufen</button>
+          <button class="btn" onclick="trade('verkaufen')">Aktien verkaufen</button>
+          <button class="btn btn-secondary" onclick="trade('beenden')">Spiel beenden</button>
+        </div>
       </div>
     </div>
 
-    <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
-    <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
-
-    <div class="form-group">
-      <label for="anzahlInput">Anzahl:</label>
-      <input type="number" id="anzahlInput" value="1" min="1" />
-      <button class="btn" onclick="trade('kaufen')">Aktien kaufen</button>
-      <button class="btn" onclick="trade('verkaufen')">Aktien verkaufen</button>
-      <button class="btn btn-secondary" onclick="trade('beenden')">Spiel beenden</button>
-    </div>
   </div>
-</div>
+</main>
 
 <footer>
-  &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.
+  <div class="footer-container">
+    &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.
+  </div>
 </footer>
 
-<!-- Externe JavaScript-Datei laden -->
 <script src="boerse.js"></script>
-
-<!-- Kleines Inline-Script, um den Bestand der gewählten Aktie zu laden und zu aktualisieren -->
 <script>
 function updateStockHolding() {
   const stockId = document.getElementById("stockSelect").value;
