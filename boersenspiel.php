@@ -142,7 +142,7 @@ if (!isset($_SESSION['stock_history'])) {
 
 <footer>
   <div class="footer-container">
-    &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.
+    &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.   <a href="impressum.php">Impressum</a>
   </div>
 </footer>
 

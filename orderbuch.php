@@ -28,11 +28,15 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 <header>
-  <h1>Orderbuch</h1>
-  <nav>
-    <a href="index.php">Startseite</a> |
-    <a href="boersenspiel.php">Börsenspiel</a>
-  </nav>
+  <div class="header-container">
+    <div class="nav-left">
+      <a href="index.php">Zur Startseite</a>
+      <a href="boersenspiel.php">Zum Börsenspiel</a>
+    </div>
+    <div class="header-center">
+      <h1>Orderbuch</h1>
+    </div>
+  </div>
 </header>
 
 <?php if (!$orders): ?>
@@ -63,5 +67,12 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </tbody>
   </table>
 <?php endif; ?>
+</body>
+</html>
+<footer>
+    <div class="footer-container">
+     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
+    </div>
+  </footer>
 </body>
 </html>
