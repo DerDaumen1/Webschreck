@@ -41,7 +41,7 @@ $stocks = $_SESSION['all_stocks'];
   <title>Aktienübersicht (mit Carousel)</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* ---- Carousel-Container ---- */
+    /* Carousel-spezifische Styles bleiben hier unverändert */
     .carousel-container {
       position: relative;
       width: 80%;
@@ -52,14 +52,10 @@ $stocks = $_SESSION['all_stocks'];
       padding: 10px;
       background-color: #fff;
     }
-
-    /* ---- Carousel-Wrapper ---- */
     .carousel-wrapper {
       display: flex;
       transition: transform 0.4s ease;
     }
-
-    /* Buttons zum Blättern */
     .carousel-btn {
       position: absolute;
       top: 50%;
@@ -84,8 +80,6 @@ $stocks = $_SESSION['all_stocks'];
     #nextBtn {
       right: 1px;
     }
-
-    /* ---- Einzelne Karten ---- */
     .stock-card {
       flex: 0 0 19%;
       box-sizing: border-box;
@@ -102,8 +96,6 @@ $stocks = $_SESSION['all_stocks'];
       margin-top: 0;
       font-size: 1rem;
     }
-
-    /* History-Container in jeder Karte */
     .history-container {
       margin-top: 10px;
       overflow-x: auto;
@@ -125,27 +117,26 @@ $stocks = $_SESSION['all_stocks'];
 </head>
 <body>
 <header>
-  <h1>Aktienübersicht (mit Carousel)</h1>
-  <nav>
-    <a href="index.php">Zur Startseite</a> |
-    <a href="boersenspiel.php">Zum Börsenspiel</a>
-  </nav>
+  <div class="header-container">
+    <div class="nav-left">
+      <a href="index.php">Zur Startseite</a>
+      <a href="boersenspiel.php">Zum Börsenspiel</a>
+    </div>
+    <div class="header-center">
+      <h1>Aktienübersicht (mit Carousel)</h1>
+    </div>
+  </div>
 </header>
 
 <!-- Carousel-Container -->
 <div class="carousel-container">
-  <!-- Blätter-Buttons -->
   <button id="prevBtn" class="carousel-btn">&lt;</button>
   <button id="nextBtn" class="carousel-btn">&gt;</button>
-
-  <!-- Wrapper für die Aktienkarten -->
   <div class="carousel-wrapper" id="cardsWrapper">
     <?php foreach ($stocks as $st): ?>
       <div class="stock-card" id="card-<?= $st['id'] ?>">
         <h2><?= htmlspecialchars($st['name']) ?></h2>
-
         <?php
-        // 3) BESTANDSABFRAGE: (kaufen - verkaufen) pro user_id + stock_name
         $stmt = $pdo->prepare("
           SELECT 
             COALESCE(SUM(CASE WHEN order_type = 'buy' THEN anzahl ELSE 0 END), 0)
@@ -161,15 +152,7 @@ $stocks = $_SESSION['all_stocks'];
         ]);
         $bestand = (int)$stmt->fetchColumn();
         ?>
-        <!-- Bestand ausgeben -->
         <p>Aktueller Bestand: <?= $bestand ?> Stück</p>
-
-        <!-- Optional: (Brief-/Geldkurs sind ja auskommentiert, du kannst sie bei Bedarf wieder aktivieren) -->
-        <!--
-        <p>Briefkurs: <?= number_format($st['briefkurs'],2,',','.') ?> €</p>
-        <p>Geldkurs: <?= number_format($st['geldkurs'],2,',','.') ?> €</p>
-        -->
-
         <h4>Letzte 10 Tage</h4>
         <div id="historyContainer-<?= $st['id'] ?>" class="history-container">
           <em>Lade Kursverlauf...</em>
@@ -180,10 +163,7 @@ $stocks = $_SESSION['all_stocks'];
 </div>
 
 <script>
-// stocks: Array aller Aktien aus PHP
 const stocks = <?= json_encode($stocks) ?>;
-
-// Wir rufen diese Funktion auf, um alle History-Daten per AJAX zu laden
 function loadAllHistories() {
   stocks.forEach(stock => {
     const stockId = stock.id;
@@ -196,10 +176,8 @@ function loadAllHistories() {
         }
         const container = document.getElementById("historyContainer-" + stockId);
         if (!container) return;
-
         let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
         data.history.forEach(row => {
-          // Syntaxfehler fixen: Backticks statt <tr><td>...
           html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
         });
         html += "</tbody></table>";
@@ -209,46 +187,27 @@ function loadAllHistories() {
   });
 }
 
-// Carousel-Logik:
 const cardsWrapper = document.getElementById("cardsWrapper");
 const totalCards = stocks.length;
 const cardsPerPage = 5;
 const totalPages = Math.ceil(totalCards / cardsPerPage);
-
-let currentIndex = 0; // Start (Seite 0)
-
-// Buttons
+let currentIndex = 0;
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
-
 function showPage(index) {
   const offset = -index * 100; 
   cardsWrapper.style.transform = `translateX(${offset}%)`;
-  updateArrows(); // Pfeil-Farben aktualisieren
+  updateArrows();
 }
-
 function updateArrows() {
-  if (currentIndex <= 0) {
-    prevBtn.style.backgroundColor = "#666"; // Grau (links nicht scrollbar)
-  } else {
-    prevBtn.style.backgroundColor = "orange"; // Links aktiv
-  }
-
-  if (currentIndex >= totalPages - 1) {
-    nextBtn.style.backgroundColor = "#666"; // Grau (rechts nicht scrollbar)
-  } else {
-    nextBtn.style.backgroundColor = "orange"; // Rechts aktiv
-  }
+  prevBtn.style.backgroundColor = currentIndex <= 0 ? "#666" : "orange";
+  nextBtn.style.backgroundColor = currentIndex >= totalPages - 1 ? "#666" : "orange";
 }
-
-// Seite initial aufrufen
 document.addEventListener("DOMContentLoaded", () => {
   loadAllHistories();
   showPage(0);
-  updateArrows(); // Initialen Pfeil-Zustand setzen
+  updateArrows();
 });
-
-// Klick-Events
 prevBtn.addEventListener("click", () => {
   if (currentIndex > 0) {
     currentIndex--;
