@@ -6,10 +6,10 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
-// 1) user_id aus Session laden (wichtig, um Bestände pro Benutzer anzuzeigen)
+// user_id aus Session
 $user_id = $_SESSION['user_id'] ?? 0;
 
-// 2) DB-Verbindung herstellen
+// DB-Verbindung
 try {
     $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -17,19 +17,19 @@ try {
     die("DB-Verbindung fehlgeschlagen: " . $e->getMessage());
 }
 
-// Minimal-Demo: Falls noch keine Stocks in der Session sind
+// Minimal-Demo: Falls noch keine Stocks in Session
 if (!isset($_SESSION['all_stocks'])) {
     $_SESSION['all_stocks'] = [
-      ["id"=>1,  "name"=>"Mustermann AG",  "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>2,  "name"=>"Beispiel AG",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>3,  "name"=>"Test Inc.",      "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>4,  "name"=>"MegaCorp",       "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>5,  "name"=>"Future Ltd.",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>6,  "name"=>"Sample GmbH",    "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>7,  "name"=>"Hallo AG",       "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>8,  "name"=>"World Ind.",     "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>9,  "name"=>"Börsenspiel SE", "briefkurs"=>100, "geldkurs"=>99],
-      ["id"=>10, "name"=>"Fantasy PLC",    "briefkurs"=>100, "geldkurs"=>99]
+        ["id"=>1,  "name"=>"Mustermann AG",  "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>2,  "name"=>"Beispiel AG",    "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>3,  "name"=>"Test Inc.",      "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>4,  "name"=>"MegaCorp",       "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>5,  "name"=>"Future Ltd.",    "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>6,  "name"=>"Sample GmbH",    "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>7,  "name"=>"Hallo AG",       "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>8,  "name"=>"World Ind.",     "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>9,  "name"=>"Börsenspiel SE", "briefkurs"=>100, "geldkurs"=>99],
+        ["id"=>10, "name"=>"Fantasy PLC",    "briefkurs"=>100, "geldkurs"=>99]
     ];
 }
 $stocks = $_SESSION['all_stocks'];
@@ -41,7 +41,7 @@ $stocks = $_SESSION['all_stocks'];
   <title>Aktienübersicht (mit Carousel)</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Carousel-spezifische Styles bleiben hier unverändert */
+    /* ---- Carousel-Container ---- */
     .carousel-container {
       position: relative;
       width: 80%;
@@ -52,10 +52,12 @@ $stocks = $_SESSION['all_stocks'];
       padding: 10px;
       background-color: #fff;
     }
+    /* ---- Carousel-Wrapper ---- */
     .carousel-wrapper {
       display: flex;
       transition: transform 0.4s ease;
     }
+    /* Buttons zum Blättern */
     .carousel-btn {
       position: absolute;
       top: 50%;
@@ -80,8 +82,10 @@ $stocks = $_SESSION['all_stocks'];
     #nextBtn {
       right: 1px;
     }
+
+    /* ---- Einzelne Karten ---- */
     .stock-card {
-      flex: 0 0 19%;
+      flex: 0 0 19%; /* 5 gleichzeitig => 100/5=20%, minimal weniger (19%) für Zwischenräume */
       box-sizing: border-box;
       margin: 0 0.5%;
       border: 1px solid #ccc;
@@ -96,6 +100,8 @@ $stocks = $_SESSION['all_stocks'];
       margin-top: 0;
       font-size: 1rem;
     }
+
+    /* History-Container in jeder Karte */
     .history-container {
       margin-top: 10px;
       overflow-x: auto;
@@ -117,26 +123,28 @@ $stocks = $_SESSION['all_stocks'];
 </head>
 <body>
 <header>
-  <div class="header-container">
-    <div class="nav-left">
-      <a href="index.php">Zur Startseite</a>
-      <a href="boersenspiel.php">Zum Börsenspiel</a>
-    </div>
-    <div class="header-center">
-      <h1>Aktienübersicht (mit Carousel)</h1>
-    </div>
-  </div>
+  <h1>Aktienübersicht (mit Carousel)</h1>
+  <nav>
+    <a href="index.php">Zur Startseite</a> |
+    <a href="boersenspiel.php">Zum Börsenspiel</a>
+  </nav>
 </header>
 
-<!-- Carousel-Container -->
 <div class="carousel-container">
+  <!-- Blätter-Buttons -->
   <button id="prevBtn" class="carousel-btn">&lt;</button>
   <button id="nextBtn" class="carousel-btn">&gt;</button>
+
+  <!-- Wrapper für die Aktienkarten -->
   <div class="carousel-wrapper" id="cardsWrapper">
     <?php foreach ($stocks as $st): ?>
       <div class="stock-card" id="card-<?= $st['id'] ?>">
         <h2><?= htmlspecialchars($st['name']) ?></h2>
+
         <?php
+        // Optional: Du kannst hier serverseitig den Bestand abfragen
+        // oder komplett auf AJAX gehen (-> s.u. in stock_overview.js).
+        // Wenn du's rein clientseitig machen willst, weglassen.
         $stmt = $pdo->prepare("
           SELECT 
             COALESCE(SUM(CASE WHEN order_type = 'buy' THEN anzahl ELSE 0 END), 0)
@@ -153,6 +161,7 @@ $stocks = $_SESSION['all_stocks'];
         $bestand = (int)$stmt->fetchColumn();
         ?>
         <p>Aktueller Bestand: <?= $bestand ?> Stück</p>
+
         <h4>Letzte 10 Tage</h4>
         <div id="historyContainer-<?= $st['id'] ?>" class="history-container">
           <em>Lade Kursverlauf...</em>
@@ -162,72 +171,13 @@ $stocks = $_SESSION['all_stocks'];
   </div>
 </div>
 
+<!-- Hier übergeben wir unser stocks-Array als globales JS-Objekt, 
+     damit die stock_overview.js darauf zugreifen kann. -->
 <script>
-const stocks = <?= json_encode($stocks) ?>;
-function loadAllHistories() {
-  stocks.forEach(stock => {
-    const stockId = stock.id;
-    fetch("get_history.php?stock_id=" + stockId)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) {
-          console.error("Fehler beim Laden der History für Aktie " + stockId + ":", data.message);
-          return;
-        }
-        const container = document.getElementById("historyContainer-" + stockId);
-        if (!container) return;
-        let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
-        data.history.forEach(row => {
-          html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
-        });
-        html += "</tbody></table>";
-        container.innerHTML = html;
-      })
-      .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId + ":", err));
-  });
-}
-
-const cardsWrapper = document.getElementById("cardsWrapper");
-const totalCards = stocks.length;
-const cardsPerPage = 5;
-const totalPages = Math.ceil(totalCards / cardsPerPage);
-let currentIndex = 0;
-const prevBtn = document.getElementById("prevBtn");
-const nextBtn = document.getElementById("nextBtn");
-function showPage(index) {
-  const offset = -index * 100; 
-  cardsWrapper.style.transform = `translateX(${offset}%)`;
-  updateArrows();
-}
-function updateArrows() {
-  prevBtn.style.backgroundColor = currentIndex <= 0 ? "#666" : "orange";
-  nextBtn.style.backgroundColor = currentIndex >= totalPages - 1 ? "#666" : "orange";
-}
-document.addEventListener("DOMContentLoaded", () => {
-  loadAllHistories();
-  showPage(0);
-  updateArrows();
-});
-prevBtn.addEventListener("click", () => {
-  if (currentIndex > 0) {
-    currentIndex--;
-    showPage(currentIndex);
-  }
-});
-nextBtn.addEventListener("click", () => {
-  if (currentIndex < totalPages - 1) {
-    currentIndex++;
-    showPage(currentIndex);
-  }
-});
+  window.phpStocks = <?= json_encode($stocks) ?>;
 </script>
-</body>
-</html>
 
-<footer>
-    <div class="footer-container">
-     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
-    </div>
-  </footer>
+<!-- Externe JS-Datei für Carousel, AJAX etc. -->
+<script src="stock_overview.js"></script>
 </body>
 </html>
