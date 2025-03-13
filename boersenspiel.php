@@ -13,16 +13,16 @@ $user_id = $_SESSION['user_id'] ?? 0;
 // Falls stocks noch nicht gesetzt, initialisieren wir z. B. 10 Musteraktien
 if (!isset($_SESSION['stocks'])) {
     $_SESSION['stocks'] = [
-      [ 'id'=>1, 'name'=>'Mustermann AG', 'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>2, 'name'=>'Beispiel AG',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>3, 'name'=>'Test Inc.',     'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>4, 'name'=>'MegaCorp',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>5, 'name'=>'Future Ltd.',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>6, 'name'=>'Sample GmbH',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>7, 'name'=>'Hallo AG',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>8, 'name'=>'World Ind.',    'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>9, 'name'=>'Börsenspiel SE','briefkurs'=>100.0, 'geldkurs'=>99.0 ],
-      [ 'id'=>10,'name'=>'Fantasy PLC',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ]
+      [ 'id'=>1,  'name'=>'Mustermann AG', 'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>2,  'name'=>'Beispiel AG',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>3,  'name'=>'Test Inc.',     'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>4,  'name'=>'MegaCorp',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>5,  'name'=>'Future Ltd.',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>6,  'name'=>'Sample GmbH',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>7,  'name'=>'Hallo AG',      'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>8,  'name'=>'World Ind.',    'briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>9,  'name'=>'Börsenspiel SE','briefkurs'=>100.0, 'geldkurs'=>99.0 ],
+      [ 'id'=>10, 'name'=>'Fantasy PLC',   'briefkurs'=>100.0, 'geldkurs'=>99.0 ]
     ];
 }
 
@@ -40,6 +40,12 @@ if (!isset($_SESSION['stock_history'])) {
   <meta charset="UTF-8">
   <title>Börsenspiel (AJAX-Version mit ausgelagertem JS)</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Optionales Inline-Styling, damit die Meldung weiter unten steht -->
+  <style>
+    .meldung {
+      margin-top: 1rem; /* Abstand zwischen den Info-Zeilen und der Meldung */
+    }
+  </style>
 </head>
 <body onload="initGame();">
 
@@ -56,10 +62,7 @@ if (!isset($_SESSION['stock_history'])) {
       <p>Herzlich willkommen im Börsenspiel – Erleben Sie spielerisch die Welt des Aktienhandels!</p>
     </div>
     <div class="nav-right">
-      <span class="user-balance">
-        Spielgeld:
-        <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, ',', '.'); ?> €
-      </span>
+      <!-- (Optional: Hier könnte man das Spielgeld oder den Usernamen platzieren) -->
     </div>
   </div>
 </header>
@@ -68,13 +71,13 @@ if (!isset($_SESSION['stock_history'])) {
   <!-- Drei breite Cards/Monitore nebeneinander (Chart, Info, Aktionen) -->
   <div class="cards-container three-columns">
     
-    <!-- Chart, Meldung, Info-Box -->
+    <!-- Chart-Bereich -->
     <div class="card">
       <canvas id="chartCanvas" width="700" height="300"></canvas>
     </div>
 
+    <!-- Info-Box + Meldung darunter -->
     <div class="card" style="position: relative;">
-      <div class="meldung" id="meldungDisplay"></div>
       <ul class="info-list">
         <li>
           <strong>Aktuelles Spielgeld:</strong>
@@ -91,8 +94,14 @@ if (!isset($_SESSION['stock_history'])) {
           <span id="profitDisplay" class="profit-positive">0,00</span> €
         </li>
       </ul>
+
+      <!-- Meldung jetzt UNTERHALB der Info-Zeilen -->
+      
+
       <div id="marketPhaseDisplay"></div>
       <div id="timerDisplay"></div>
+
+      <div class="meldung" id="meldungDisplay"></div>
     </div>
 
     <!-- Kauf/Verkauf-Steuerung -->
@@ -122,7 +131,6 @@ if (!isset($_SESSION['stock_history'])) {
       <div class="form-group">
         <label for="anzahlInput">Anzahl:</label>
         <input type="number" id="anzahlInput" value="1" min="1" />
-        <!-- Hier haben wir nur den neuen Container trade-row eingefügt -->
         <div class="trade-row">
           <button class="btn" onclick="trade('buy')">Aktien kaufen</button>
           <button class="btn" onclick="trade('sell')">Aktien verkaufen</button>
@@ -136,30 +144,11 @@ if (!isset($_SESSION['stock_history'])) {
 
 <footer>
   <div class="footer-container">
-    &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.   <a href="impressum.php">Impressum</a>
+    &copy; <?php echo date("Y"); ?> Mein Börsenspiel - Alle Rechte vorbehalten.
+    <a href="impressum.php">Impressum</a>
   </div>
 </footer>
 
 <script src="boerse.js"></script>
-<script>
-function updateStockHolding() {
-  const stockId = document.getElementById("stockSelect").value;
-  fetch("get_holding.php?stock_id=" + stockId)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById("aktienBestandDisplay").textContent = data.bestand;
-      } else {
-        console.error("Fehler beim Laden des Bestandes:", data.message);
-      }
-    })
-    .catch(err => console.error("Fehler beim AJAX-Aufruf:", err));
-}
-
-// Rufe updateStockHolding() auch beim Laden der Seite auf, um den Bestand initial anzuzeigen
-document.addEventListener("DOMContentLoaded", () => {
-  updateStockHolding();
-});
-</script>
 </body>
 </html>

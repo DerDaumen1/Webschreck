@@ -134,7 +134,7 @@ $stocks = $_SESSION['all_stocks'];
       <h1>Aktienübersicht (mit Carousel)</h1>
     </div>
     <div class="nav-right">
-      <!-- Platz frei oder Infos wie Spielgeld -->
+    <span class="user-stocks">Aktien Gesamt: <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
     </div>
   </div>
 </header>

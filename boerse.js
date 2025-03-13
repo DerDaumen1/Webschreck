@@ -80,7 +80,9 @@ function initGame() {
  * Erwartet, dass get_holding.php den Bestand als JSON liefert.
  */
 function updateStockHolding() {
-  fetch("get_holding.php?stock_id=" + selectedStockId)
+  // Hier wird der Aktien-Selektor direkt ausgelesen, falls nötig
+  const stockId = document.getElementById("stockSelect").value || selectedStockId;
+  fetch("get_holding.php?stock_id=" + stockId)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -181,7 +183,6 @@ function updateAllKurse() {
     }
 
     stockHistory[stock.id].push(stock.briefkurs);
-
 
     let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
     fetch("update_stocks.php", {
@@ -320,3 +321,12 @@ function updateGameTimer() {
   let text = `Verbleibende Spielzeit: ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')} min`;
   document.getElementById("timerDisplay").textContent = text;
 }
+
+/************************************************************
+ * Integration des Inline-Skriptteils aus der PHP-Datei
+ ************************************************************/
+// Anstelle des separaten Inline-Skripts in der PHP-Datei wird
+// hier beim DOMContentLoaded direkt der Bestand abgefragt.
+document.addEventListener("DOMContentLoaded", () => {
+  updateStockHolding();
+});
