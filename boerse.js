@@ -293,7 +293,7 @@ function updateAnzeigen() {
   let spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
   let spielgeld = parseFloat(spielgeldText) || 0;
   let depotAnz = parseInt(document.getElementById("aktienDepotDisplay").textContent) || 0;
-  let liveProfit = (spielgeld + depotAnz * stock.geldkurs) - 50000;
+  let liveProfit = spielgeld - 50000;
   const profitEl = document.getElementById("profitDisplay");
   let profitText = liveProfit.toFixed(2).replace('.', ',');
   profitEl.textContent = profitText;
