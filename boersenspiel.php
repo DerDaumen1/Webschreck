@@ -130,8 +130,8 @@ if (!isset($_SESSION['stock_history'])) {
         <input type="number" id="anzahlInput" value="1" min="1" />
         <!-- Hier haben wir nur den neuen Container trade-row eingefügt -->
         <div class="trade-row">
-          <button class="btn" onclick="trade('kaufen')">Aktien kaufen</button>
-          <button class="btn" onclick="trade('verkaufen')">Aktien verkaufen</button>
+          <button class="btn" onclick="trade('buy')">Aktien kaufen</button>
+          <button class="btn" onclick="trade('sell')">Aktien verkaufen</button>
           <button class="btn btn-secondary" onclick="trade('beenden')">Spiel beenden</button>
         </div>
       </div>

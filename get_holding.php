@@ -27,7 +27,12 @@ $stockNameMap = [
   1 => "Mustermann AG",
   2 => "Beispiel AG",
   3 => "Test Inc.",
-  // ...
+  4 => "MegaCorp",
+  5 => "Future Ltd.",
+  6 => "Sample GmbH",
+  7 => "Hallo AG",
+  8 => "World Ind.",
+  9 => "Börsenspiel SE",
   10 => "Fantasy PLC"
 ];
 $stock_name = $stockNameMap[$stock_id] ?? "???";

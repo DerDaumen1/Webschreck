@@ -28,7 +28,7 @@ $typ = $_POST['typ'] ?? '';
 $response = ["success" => false, "message" => "", "spielgeld" => $_SESSION['spielgeld'] ?? 50000];
 
 // Kauf-Logik
-if ($typ === 'kaufen' && !empty($_POST['anzahl'])) {
+if ($typ === 'buy' && !empty($_POST['anzahl'])) {
     $anzahl = (int)$_POST['anzahl'];
     $stockName = $_POST['stock_name'] ?? 'unbekannt';
     $briefkurs = parseCurrency($_POST['briefkurs'] ?? 100.0);
@@ -39,6 +39,7 @@ if ($typ === 'kaufen' && !empty($_POST['anzahl'])) {
 
     if ($gesamt <= $_SESSION['spielgeld']) {
         $_SESSION['spielgeld'] -= $gesamt;
+        // Aktualisierung des globalen Depotbestands (für Gesamtanzeige)
         $_SESSION['anzahl_aktien'] = ($_SESSION['anzahl_aktien'] ?? 0) + $anzahl;
 
         try {
@@ -63,11 +64,27 @@ if ($typ === 'kaufen' && !empty($_POST['anzahl'])) {
     }
 }
 
-// Verkauf-Logik
-elseif ($typ === 'verkaufen' && !empty($_POST['anzahl'])) {
+// Verkauf-Logik – angepasst: Abfrage des aktuellen Bestands pro Aktie aus der orders-Tabelle
+elseif ($typ === 'sell' && !empty($_POST['anzahl'])) {
     $anzahl = (int)$_POST['anzahl'];
-    $currentHeld = $_SESSION['anzahl_aktien'] ?? 0;
+    $stockName = $_POST['stock_name'] ?? 'unbekannt';
     
+    // Bestandsabfrage: Ermittelt den Bestand (Käufe - Verkäufe) für diese spezifische Aktie
+    $stmt = $pdo->prepare("
+      SELECT 
+        COALESCE(SUM(CASE WHEN order_type = 'buy' THEN anzahl ELSE 0 END), 0)
+        - COALESCE(SUM(CASE WHEN order_type = 'sell' THEN anzahl ELSE 0 END), 0)
+        AS bestand
+      FROM orders
+      WHERE user_id = :uid
+        AND stock_name = :sname
+    ");
+    $stmt->execute([
+        'uid'   => $_SESSION['user_id'],
+        'sname' => $stockName
+    ]);
+    $currentHeld = (int)$stmt->fetchColumn();
+
     if ($anzahl <= $currentHeld) {
         $geldkurs = parseCurrency($_POST['geldkurs'] ?? 99.0);
         $orderwert = $anzahl * $geldkurs;
@@ -75,6 +92,7 @@ elseif ($typ === 'verkaufen' && !empty($_POST['anzahl'])) {
         $erlös = max($orderwert - $provision, 0);
 
         $_SESSION['spielgeld'] += $erlös;
+        // Aktualisiere den globalen Depotbestand (falls genutzt)
         $_SESSION['anzahl_aktien'] -= $anzahl;
 
         try {
@@ -83,7 +101,7 @@ elseif ($typ === 'verkaufen' && !empty($_POST['anzahl'])) {
                 VALUES (:uid, :sname, 'sell', :anz, :prc, :prov, NOW())");
             $ins->execute([
                 'uid' => $_SESSION['user_id'],
-                'sname' => $_POST['stock_name'] ?? 'unbekannt',
+                'sname' => $stockName,
                 'anz' => $anzahl,
                 'prc' => $geldkurs,
                 'prov' => $provision
@@ -98,7 +116,7 @@ elseif ($typ === 'verkaufen' && !empty($_POST['anzahl'])) {
     }
 }
 
-// Hühner-Spiel Logik (NEU mit Komma-Fix)
+// Hühner-Spiel Logik
 elseif ($typ === 'huhn_bet') {
     $bet = parseCurrency($_POST['bet'] ?? 0);
     
@@ -115,7 +133,6 @@ elseif ($typ === 'huhn_win') {
     $_SESSION['spielgeld'] += $amount;
     $response["success"] = true;
 }
-
 // Spiel beenden
 elseif ($typ === 'beenden') {
     $response["success"] = true;
@@ -123,7 +140,7 @@ elseif ($typ === 'beenden') {
         . number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.') . " €";
 }
 
-// Datenbank-Update mit Rundung (NEU)
+// DB-Update mit Rundung
 try {
     $update = $pdo->prepare("UPDATE users SET 
         spielgeld = ROUND(:sg, 2), 
@@ -138,6 +155,5 @@ try {
     $response["message"] .= " | DB-Update-Fehler: " . $e->getMessage();
 }
 
-// JSON-Response (NEU: Immer 2 Dezimalstellen)
 $response["spielgeld"] = number_format($_SESSION['spielgeld'], 2, '.', '');
 echo json_encode($response);
