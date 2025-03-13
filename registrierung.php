@@ -1,57 +1,77 @@
 <?php
 // registrierung.php
 session_start();
+
 $dbHost = 'localhost';
 $dbUser = 'root';
 $dbPass = '';
 $dbName = 'webdatabase';
 
+// PDO-Verbindung herstellen
 $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
+
+// Array für Fehlermeldungen
 $fehler = [];
 $erfolg = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $anrede = trim($_POST['anrede'] ?? '');
-    $vorname = trim($_POST['vorname'] ?? '');
-    $nachname = trim($_POST['nachname'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $emailWdh = trim($_POST['emailWdh'] ?? '');
-    $geburtsdatum = trim($_POST['geburtsdatum'] ?? '');
-    $plz = trim($_POST['plz'] ?? '');
-    $passwort = trim($_POST['passwort'] ?? '');
-    $passwortWdh = trim($_POST['passwortWdh'] ?? '');
+    // Eingaben aus dem Formular lesen
+    $anrede        = trim($_POST['anrede'] ?? '');
+    $vorname       = trim($_POST['vorname'] ?? '');
+    $nachname      = trim($_POST['nachname'] ?? '');
+    $email         = trim($_POST['email'] ?? '');
+    $emailWdh      = trim($_POST['emailWdh'] ?? '');
+    $geburtsdatum  = trim($_POST['geburtsdatum'] ?? '');
+    $plz           = trim($_POST['plz'] ?? '');
+    $passwort      = trim($_POST['passwort'] ?? '');
+    $passwortWdh   = trim($_POST['passwortWdh'] ?? '');
 
+    // E-Mail-Abgleich (serverseitig)
     if ($email !== $emailWdh) {
         $fehler[] = "Die E-Mail-Adressen stimmen nicht überein.";
     }
+
+    // Passwörter abgleichen (serverseitig)
     if ($passwort !== $passwortWdh) {
         $fehler[] = "Die Passwörter stimmen nicht überein.";
     }
 
+    // TODO (Optional, empfehlenswert): weitere serverseitige Validierungen
+    // z. B. PLZ muss 5 Ziffern haben, Mindestalter 18 Jahre etc.
+    // if (!preg_match('/^\d{5}$/', $plz)) {
+    //    $fehler[] = "Die PLZ muss genau 5 Ziffern haben (serverseitig).";
+    // }
+    // ... und Alter-Berechnung
+
+    // Nur wenn keine Fehler vorliegen, in DB schreiben
     if (count($fehler) === 0) {
-        $stmt = $pdo->prepare("INSERT INTO users (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien)
-                               VALUES (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)");
+        // Nutzer registrieren (Passwort wird gehasht)
+        $stmt = $pdo->prepare("
+            INSERT INTO users (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien)
+            VALUES (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)
+        ");
         $stmt->execute([
-            ':anrede' => $anrede,
-            ':vorname' => $vorname,
-            ':nachname' => $nachname,
-            ':email' => $email,
-            ':passwort' => password_hash($passwort, PASSWORD_DEFAULT),
+            ':anrede'       => $anrede,
+            ':vorname'      => $vorname,
+            ':nachname'     => $nachname,
+            ':email'        => $email,
+            ':passwort'     => password_hash($passwort, PASSWORD_DEFAULT),
             ':geburtsdatum' => $geburtsdatum,
-            ':plz' => $plz
+            ':plz'          => $plz
         ]);
 
+        // Neuen User-ID in Session merken
         $_SESSION['user_id'] = $pdo->lastInsertId();
 
-
+        // Direkt einloggen und zur Startseite
         $erfolg = true;
-        // Direkt einloggen und zur Startseite weiterleiten:
-        $_SESSION['angemeldet'] = true;
-        $_SESSION['nutzer_email'] = $email;
-        $_SESSION['vorname'] = $vorname;
-        $_SESSION['nachname'] = $nachname;
-        $_SESSION['spielgeld'] = 50000;
+        $_SESSION['angemeldet']    = true;
+        $_SESSION['nutzer_email']  = $email;
+        $_SESSION['vorname']       = $vorname;
+        $_SESSION['nachname']      = $nachname;
+        $_SESSION['spielgeld']     = 50000;
         $_SESSION['anzahl_aktien'] = 0;
+
         header('Location: index.php');
         exit;
     }
@@ -62,14 +82,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <title>Registrierung Börsenspiel</title>
-  <!-- Hier wird das externe Stylesheet für die Registrierungsseite eingebunden -->
+  <!-- Externes Stylesheet für Registrierungsseite -->
   <link rel="stylesheet" href="registrierung.css">
 </head>
 <body>
 <div class="container">
   <div class="card">
     <h1>Registrierung Börsenspiel</h1>
+
     <?php if (!$erfolg): ?>
+      <!-- Fehlermeldungen ausgeben -->
       <?php if (!empty($fehler)): ?>
         <div class="fehler">
           <ul>
@@ -80,7 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       <?php endif; ?>
 
-      <form id="regForm" method="post" action="registrierung.php">
+      <!-- Wichtig: onsubmit="return validateForm()" damit JS prüft! -->
+      <form id="regForm" method="post" action="registrierung.php" onsubmit="return validateForm()">
         <div class="form-group">
           <label for="anrede">Anrede</label>
           <input type="text" id="anrede" name="anrede" required placeholder="Herr / Frau / Divers" />
@@ -135,5 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
   </div>
 </div>
+
+<!-- Ganz unten: JavaScript einbinden -->
+<script src="registrierung.js"></script>
 </body>
 </html>
