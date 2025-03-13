@@ -150,25 +150,5 @@ if (!isset($_SESSION['stock_history'])) {
 </footer>
 
 <script src="boerse.js"></script>
-<script>
-function updateStockHolding() {
-  const stockId = document.getElementById("stockSelect").value;
-  fetch("get_holding.php?stock_id=" + stockId)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById("aktienBestandDisplay").textContent = data.bestand;
-      } else {
-        console.error("Fehler beim Laden des Bestandes:", data.message);
-      }
-    })
-    .catch(err => console.error("Fehler beim AJAX-Aufruf:", err));
-}
-
-// Beim Laden direkt den Bestand abfragen
-document.addEventListener("DOMContentLoaded", () => {
-  updateStockHolding();
-});
-</script>
 </body>
 </html>
