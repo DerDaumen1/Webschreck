@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     header('Location: registrierung.php');
@@ -25,10 +25,13 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       <div class="nav-right">
         <span class="user-name">
           <?php 
-           
+            // Hier evtl. noch Benutzername / Spielgeld ausgeben, falls gewünscht
+            // (Hast du in boersenspiel.php ähnlich gemacht)
+            echo isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "";
+            echo " ";
+            echo isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : "";
           ?>
         </span>
-        
       </div>
     </div>
   </header>
@@ -45,7 +48,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       </div>
 
       <div id="road">
-        <!-- Detailliertes Huhn-Bild -->
+        <!-- Huhn-Bild -->
         <img id="chicken" src="chicken.png" alt="Huhn">
         <!-- Schritt-Markierungen -->
         <div id="steps"></div>
@@ -55,7 +58,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
         <p>Aktueller Gewinn: <span id="currentWin">0 €</span></p>
         <button class="btn" id="cashOutBtn" onclick="cashOut()" disabled>Ausbezahlen</button>
       </div>
-      <!-- Container für Inline-Meldungen -->
+      <!-- Inline-Meldungen -->
       <div id="gameMessage"></div>
     </div>
   </div>

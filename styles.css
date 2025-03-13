@@ -77,21 +77,21 @@ header {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
   text-align: center;
-  flex: 1 1 300px;      /* Baseline: mind. 300px */
-  max-width: 500px;    /* Erhöht, damit es breiter wirkt */
+  flex: 1 1 300px;
+  max-width: 500px;
 }
 
-/* Spezifisch für Dreispalten-Layout im Börsenspiel */
+/* Dreispalten-Layout im Börsenspiel */
 .three-columns {
-  flex-wrap: nowrap;         /* Alle Cards in einer Zeile, wenn Platz vorhanden */
+  flex-wrap: nowrap;
   justify-content: space-between;
 }
 .three-columns .card {
-  flex: 1 1 30%;             /* 3 Cards nebeneinander bei großen Bildschirmen */
-  max-width: 700px;          /* Falls jemand einen ultrabreiten Bildschirm hat */
+  flex: 1 1 30%;
+  max-width: 700px;
 }
 
-/* Jumbotron - falls z. B. in index/hunchenspiel genutzt (hier optional) */
+/* Jumbotron */
 .jumbotron {
   background: linear-gradient(135deg, #0d6efd, #66b2ff);
   color: #fff;
@@ -136,7 +136,7 @@ footer {
   font-size: 0.9rem;
 }
 
-/* Responsive Styles */
+/* Responsive */
 @media (max-width: 1200px) {
   .three-columns {
     flex-wrap: wrap;
@@ -163,8 +163,7 @@ footer {
   }
 }
 
-/* ------------------------------- */
-/* Hühnchenspiel- und Börsenspiel-spezifische Stile */
+/* Hühnchenspiel-spezifische Stile */
 #gameContainer .btn {
   margin: 0.5rem;
   padding: 0.8rem 1.5rem;
@@ -256,10 +255,14 @@ footer {
 }
 
 /* -------------------------------------- */
-/* Neue Regel: Buttons in einer Zeile anordnen */
-.trade-row {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap; /* Falls auf kleineren Bildschirmen nicht genug Platz ist */
+/* Nur für Hühner-Roulette (game-page) -> Vollbreite */
+body.game-page #gameContainer {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 1rem;
+}
+body.game-page #gameContainer .card {
+  max-width: 1200px;  /* Du kannst diesen Wert anpassen, wenn du wirklich 100% willst */
+  margin: 0 auto;
 }
