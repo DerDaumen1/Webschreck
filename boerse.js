@@ -181,9 +181,7 @@ function updateAllKurse() {
     }
 
     stockHistory[stock.id].push(stock.briefkurs);
-    if (stockHistory[stock.id].length > 10) {
-      stockHistory[stock.id].shift();
-    }
+
 
     let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
     fetch("update_stocks.php", {
