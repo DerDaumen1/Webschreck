@@ -78,7 +78,7 @@ session_start();
 
   <footer>
     <div class="footer-container">
-      &copy; Privatbank Mustermann <?= date("Y") ?>
+     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
     </div>
   </footer>
 </body>

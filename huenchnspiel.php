@@ -66,3 +66,10 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
   <script src="huenchnspiel.js"></script>
 </body>
 </html>
+<footer>
+    <div class="footer-container">
+     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
+    </div>
+  </footer>
+</body>
+</html>

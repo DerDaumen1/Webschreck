@@ -69,3 +69,10 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php endif; ?>
 </body>
 </html>
+<footer>
+    <div class="footer-container">
+     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
+    </div>
+  </footer>
+</body>
+</html>
