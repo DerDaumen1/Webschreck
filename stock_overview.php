@@ -122,14 +122,24 @@ $stocks = $_SESSION['all_stocks'];
   </style>
 </head>
 <body>
+
+<!-- Neuer Header-Stil -->
 <header>
-  <h1>Aktienübersicht (mit Carousel)</h1>
-  <nav>
-    <a href="index.php">Zur Startseite</a> |
-    <a href="boersenspiel.php">Zum Börsenspiel</a>
-  </nav>
+  <div class="header-container">
+    <div class="nav-left">
+      <a href="index.php">Startseite</a>
+      <a href="boersenspiel.php">Börsenspiel</a>
+    </div>
+    <div class="header-center">
+      <h1>Aktienübersicht (mit Carousel)</h1>
+    </div>
+    <div class="nav-right">
+      <!-- Platz frei oder Infos wie Spielgeld -->
+    </div>
+  </div>
 </header>
 
+<!-- Carousel-Container -->
 <div class="carousel-container">
   <!-- Blätter-Buttons -->
   <button id="prevBtn" class="carousel-btn">&lt;</button>
@@ -142,9 +152,7 @@ $stocks = $_SESSION['all_stocks'];
         <h2><?= htmlspecialchars($st['name']) ?></h2>
 
         <?php
-        // Optional: Du kannst hier serverseitig den Bestand abfragen
-        // oder komplett auf AJAX gehen (-> s.u. in stock_overview.js).
-        // Wenn du's rein clientseitig machen willst, weglassen.
+        // Serverseitige Bestandsabfrage
         $stmt = $pdo->prepare("
           SELECT 
             COALESCE(SUM(CASE WHEN order_type = 'buy' THEN anzahl ELSE 0 END), 0)
@@ -171,13 +179,12 @@ $stocks = $_SESSION['all_stocks'];
   </div>
 </div>
 
-<!-- Hier übergeben wir unser stocks-Array als globales JS-Objekt, 
-     damit die stock_overview.js darauf zugreifen kann. -->
+<!-- Stocks-Array als globales JS-Objekt -->
 <script>
   window.phpStocks = <?= json_encode($stocks) ?>;
 </script>
 
-<!-- Externe JS-Datei für Carousel, AJAX etc. -->
+<!-- JS-Datei für Carousel, AJAX etc. -->
 <script src="stock_overview.js"></script>
 </body>
 </html>
