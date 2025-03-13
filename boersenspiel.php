@@ -83,12 +83,6 @@ if (!isset($_SESSION['stock_history'])) {
           </span> €
         </li>
         <li>
-          <strong>Gesamt-Aktien (alter Wert):</strong>
-          <span id="aktienDepotDisplay">
-            <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
-          </span>
-        </li>
-        <li>
           <strong>Aktueller Bestand (gewählte Aktie):</strong>
           <span id="aktienBestandDisplay">0</span> Stück
         </li>
