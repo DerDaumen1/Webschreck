@@ -381,19 +381,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Neue Funktion, um eine Börsenspiel-Session zu starten
 function startGameSession() {
-  // Initialisiere alle Elemente (Chart, History etc.) wenn nötig
-  initGame();
-  // Setze das Startkapital für diese Session anhand des aktuellen GameCash
-  window.startKapital = parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.')) || 50000;
-  gameSessionActive = true;
-  gameTimerSeconds = 600;
-  // Starte oder resette die Intervalle
-  clearInterval(updateInterval);
-  clearInterval(gameTimerInterval);
-  updateInterval = setInterval(updateAllKurse, 1000);
-  gameTimerInterval = setInterval(updateGameTimer, 1000);
-  // Zeige eine Statusmeldung und blende den Start-Button aus
-  document.getElementById("meldungDisplay").textContent = "Session gestartet!";
-  document.getElementById("startGameBtn").style.display = "none";
-  updateAnzeigen();
+  // Neues: Aktienhistorie zurücksetzen
+  fetch("reset_history.php")
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        document.getElementById("meldungDisplay").textContent = data.message;
+        return;
+      }
+      initGame();
+      window.startKapital = parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.')) || 50000;
+      gameSessionActive = true;
+      gameTimerSeconds = 600;
+      clearInterval(updateInterval);
+      clearInterval(gameTimerInterval);
+      updateInterval = setInterval(updateAllKurse, 1000);
+      gameTimerInterval = setInterval(updateGameTimer, 1000);
+      document.getElementById("meldungDisplay").textContent = "Session gestartet!";
+      document.getElementById("startGameBtn").style.display = "none";
+      updateAnzeigen();
+    })
+    .catch(err => {
+      document.getElementById("meldungDisplay").textContent = "Fehler beim Zurücksetzen der Historie";
+    });
 }
