@@ -14,10 +14,14 @@ let currentPhase = "";
 
 let gameTimerSeconds = 600; // 10 Minuten Spielzeit
 let updateInterval;         // Handle für updateAllKurse
+let gameTimerInterval;      // Handle für den Timer
 
 // Add global variables for cost basis tracking:
 let averageCost = {};
 let holdings = {};
+
+// Neue globale Variable, um die Session zu kennzeichnen (optional)
+let gameSessionActive = false;
 
 /**
  * Wird beim Laden der Seite (onload) ausgeführt.
@@ -31,8 +35,8 @@ function initGame() {
 
   // Starte Hintergrund-Updates (alle Aktien, jede Sekunde)
   updateInterval = setInterval(updateAllKurse, 1000);
-  // Countdown-Timer
-  setInterval(updateGameTimer, 1000);
+  // Timer in einer Variable speichern
+  gameTimerInterval = setInterval(updateGameTimer, 1000);
   // Alle 5 Sekunden: History der aktuell ausgewählten Aktie neu laden
   setInterval(updateHistoryDisplay, 5000);
 
@@ -150,9 +154,28 @@ function trade(action) {
         }
         // Bestand nach einem erfolgreichen Trade neu laden
         updateStockHolding();
-      }
-      if (action === 'beenden' && data.success) {
-        gameTimerSeconds = 0;
+        // Bei Beenden: stoppe Timer und Chart und berechne Gewinn/Verlust
+        if (action === 'beenden') {
+          gameTimerSeconds = 0;
+          clearInterval(updateInterval);
+          clearInterval(gameTimerInterval);
+          // Gewinn/Verlust berechnen relativ zum Session-Start
+          let currentCash = parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.'));
+          let gainLoss = currentCash - window.startKapital;
+          let finalElem = document.getElementById("finalResultDisplay");
+          if (!finalElem) {
+            finalElem = document.createElement("div");
+            finalElem.id = "finalResultDisplay";
+            finalElem.style.marginTop = "1rem";
+            finalElem.style.fontWeight = "bold";
+            // Neues Element direkt nach #meldungDisplay einfügen
+            document.getElementById("meldungDisplay").insertAdjacentElement("afterend", finalElem);
+          }
+          finalElem.textContent = "Gesamte Gewinn/Verlust: " + gainLoss.toFixed(2).replace('.', ',') + " €";
+          gameSessionActive = false;
+          // Zeige den Start-Button für eine neue Session an
+          document.getElementById("startGameBtn").style.display = "block";
+        }
       }
       updateAnzeigen();
     })
@@ -355,3 +378,22 @@ function updateGameTimer() {
 document.addEventListener("DOMContentLoaded", () => {
   updateStockHolding();
 });
+
+// Neue Funktion, um eine Börsenspiel-Session zu starten
+function startGameSession() {
+  // Initialisiere alle Elemente (Chart, History etc.) wenn nötig
+  initGame();
+  // Setze das Startkapital für diese Session anhand des aktuellen GameCash
+  window.startKapital = parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.')) || 50000;
+  gameSessionActive = true;
+  gameTimerSeconds = 600;
+  // Starte oder resette die Intervalle
+  clearInterval(updateInterval);
+  clearInterval(gameTimerInterval);
+  updateInterval = setInterval(updateAllKurse, 1000);
+  gameTimerInterval = setInterval(updateGameTimer, 1000);
+  // Zeige eine Statusmeldung und blende den Start-Button aus
+  document.getElementById("meldungDisplay").textContent = "Session gestartet!";
+  document.getElementById("startGameBtn").style.display = "none";
+  updateAnzeigen();
+}
