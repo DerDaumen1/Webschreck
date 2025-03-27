@@ -24,7 +24,7 @@ async function startGame() {
   }
 
   // Einsatz vom Konto abziehen
-  const response = await fetch('trade.php', {
+  const response = await fetch('api.php?action=trade', {
     method: "POST",
     body: new URLSearchParams({
       typ: 'huhn_bet',
@@ -96,7 +96,7 @@ function endGame(success) {
 }
 
 function updateBalance(amount) {
-  fetch('trade.php', {
+  fetch('api.php?action=trade', {
     method: "POST",
     body: new URLSearchParams({
       typ: 'huhn_win',

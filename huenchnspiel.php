@@ -23,15 +23,13 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
         <h1>Hühner-Roulette</h1>
       </div>
       <div class="nav-right">
-        <span class="user-name">
+        <div class="depot-content">
           <?php 
-            // Hier evtl. noch Benutzername / Spielgeld ausgeben, falls gewünscht
-            // (Hast du in boersenspiel.php ähnlich gemacht)
             echo isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "";
             echo " ";
             echo isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : "";
           ?>
-        </span>
+        </div>
       </div>
     </div>
   </header>

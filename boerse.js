@@ -95,7 +95,7 @@ function initGame() {
 function updateStockHolding() {
   // Hier wird der Aktien-Selektor direkt ausgelesen, falls nötig
   const stockId = document.getElementById("stockSelect").value || selectedStockId;
-  fetch("get_holding.php?stock_id=" + stockId)
+  fetch("api.php?action=get_holding&stock_id=" + stockId)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -126,7 +126,10 @@ function trade(action) {
   fd.append("briefkurs", stock.briefkurs.toFixed(2));
   fd.append("geldkurs", stock.geldkurs.toFixed(2));
 
-  fetch("trade.php", {
+  // Ersetze den folgenden fetch-Aufruf:
+  // fetch("trade.php", {
+  // Neuer fetch-Aufruf:
+  fetch("api.php?action=trade", {
     method: "POST",
     body: fd
   })
@@ -233,7 +236,7 @@ function updateAllKurse() {
     stockHistory[stock.id].push(stock.briefkurs);
 
     let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
-    fetch("update_stocks.php", {
+    fetch("api.php?action=update_stocks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -256,7 +259,7 @@ function updateAllKurse() {
  * und schreibt sie in den Container #historyContainer.
  */
 function updateHistoryDisplay() {
-  fetch("get_history.php?stock_id=" + selectedStockId)
+  fetch("api.php?action=get_history&stock_id=" + selectedStockId)
     .then(res => res.json())
     .then(data => {
       if (!data.success) {
