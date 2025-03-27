@@ -116,7 +116,7 @@ function updateGlobalPortfolio() {
     // Setze die Textfarbe je nach Gewinn/Verlust
     const gvElem = document.getElementById("gewinnVerlustDisplay");
     if (gewinnVerlust >= 0) {
-        gvElem.style.color = "green";
+        gvElem.style.color = "#90ee90"; // helles grün
     } else {
         gvElem.style.color = "red";
     }
