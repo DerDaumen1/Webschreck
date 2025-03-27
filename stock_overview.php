@@ -89,7 +89,8 @@ $stocks = $_SESSION['all_stocks'];
         $bestand = (int)$stmt->fetchColumn();
         ?>
         <p>Aktueller Bestand: <?= $bestand ?> Stück</p>
-
+        <!-- Neuer Platzhalter für den aktuellen Wert -->
+        <p>Aktueller Wert: <span id="currentValue-<?= $st['id'] ?>">0,00</span> €</p>
         <h4>Letzte 10 Tage</h4>
         <div id="historyContainer-<?= $st['id'] ?>" class="history-container">
           <em>Lade Kursverlauf...</em>
