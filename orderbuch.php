@@ -4,14 +4,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     header('Location: login.php');
     exit;
 }
-
-// DB-Verbindung
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("DB-Verbindung fehlgeschlagen: " . $e->getMessage());
-}
+require_once 'db.php';
 
 // Alle Orders des aktuellen Benutzers laden
 $user_id = $_SESSION['user_id'];

@@ -1,13 +1,6 @@
 <?php
 session_start();
-
-$dbHost = 'localhost';
-$dbUser = 'root';
-$dbPass = '';
-$dbName = 'webdatabase';
-
-// PDO-Verbindung herstellen
-$pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
+require_once 'db.php';
 
 // Array für serverseitige Fehlermeldungen
 $fehler = [];

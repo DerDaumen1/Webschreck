@@ -9,13 +9,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 // user_id aus Session
 $user_id = $_SESSION['user_id'] ?? 0;
 
-// DB-Verbindung
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("DB-Verbindung fehlgeschlagen: " . $e->getMessage());
-}
+require_once 'db.php';
 
 // Minimal-Demo: Falls noch keine Stocks in Session
 if (!isset($_SESSION['all_stocks'])) {

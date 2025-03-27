@@ -7,13 +7,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "DB-Fehler: " . $e->getMessage()]);
-    exit;
-}
+require_once 'db.php';
 
 function parseCurrency($value) {
     return round((float)str_replace(',', '.', $value), 2);

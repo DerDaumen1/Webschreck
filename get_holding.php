@@ -7,16 +7,10 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
+require_once 'db.php';
+
 $user_id = $_SESSION['user_id'] ?? 0;
 $stock_id = (int)($_GET['stock_id'] ?? 0);
-
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=webdatabase;charset=utf8", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => $e->getMessage()]);
-    exit;
-}
 
 // Falls du in orders per stock_id speicherst -> anpassen. 
 // Falls du 'stock_name' speicherst, müsstest du stock_id => stock_name mappen
