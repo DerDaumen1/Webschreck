@@ -330,11 +330,9 @@ footer {
   0% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-10px);
   }
-
   100% {
     transform: translateY(0);
   }
@@ -368,7 +366,6 @@ footer {
     transform: scale(0.5);
     opacity: 1;
   }
-
   100% {
     transform: scale(1.5);
     opacity: 0;
@@ -450,16 +447,19 @@ body.game-page #gameContainer .card {
 
   .carousel-container {
     width: 100%;
-    padding: 1rem;
+    /* ↓ Ergänzt: Ermöglicht horizontales Scrollen für Tablet ↓ */
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .carousel-wrapper {
     flex-wrap: nowrap;
   }
 
+  /* ↓ überschreiben: 0 0 220px, damit alle 10 Aktien nebeneinander sind ↓ */
   .stock-card {
-    flex: 0 0 45%;
-    margin: 1rem;
+    flex: 0 0 220px;
+    margin: 0 10px;
   }
 }
 
@@ -495,15 +495,19 @@ body.game-page #gameContainer .card {
   .carousel-container {
     width: 100%;
     padding: 1rem;
+    /* ↓ Ergänzt: Ermöglicht horizontales Scrollen für Handy ↓ */
+    overflow-x: auto;
+    white-space: nowrap;
   }
 
   .carousel-wrapper {
     flex-wrap: nowrap;
   }
 
+  /* ↓ überschreiben: 0 0 220px, damit alle 10 Aktien nebeneinander sind ↓ */
   .stock-card {
-    flex: 0 0 90%;
-    margin: 1rem auto;
+    flex: 0 0 220px;
+    margin: 0 10px;
   }
 
   #road {
