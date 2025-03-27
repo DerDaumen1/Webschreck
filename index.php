@@ -6,7 +6,7 @@ session_start();
 <head>
   <meta charset="UTF-8">
   <title>Privatbank Mustermann</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css"> <!-- Pfad ist korrekt -->
 </head>
 <body>
   <header>
@@ -14,10 +14,10 @@ session_start();
       <div class="nav-left">
         <a href="index.php">Startseite</a>
         <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
-          <a href="logout.php">Logout</a>
+          <a href="pages/logout.php">Logout</a>
         <?php else: ?>
-          <a href="registrierung.php">Registrieren</a>
-          <a href="login.php">Anmelden</a>
+          <a href="pages/registrierung.php">Registrieren</a>
+          <a href="pages/login.php">Anmelden</a>
         <?php endif; ?>
       </div>
       <div class="header-center">
@@ -59,7 +59,7 @@ session_start();
         <h3>Börsenspiel</h3>
         <p>Handeln Sie virtuell mit Aktien und setzen Sie Ihr strategisches Geschick ein. Wählen Sie aus 10 verschiedenen Aktien, beobachten Sie den Markt in unserer übersichtlichen Aktienübersicht und prüfen Sie Ihre letzten Transaktionen im Orderbuch.</p>
         <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
-          <button onclick="location.href='boersenspiel.php'">Zum Börsenspiel</button>
+          <button onclick="location.href='pages/boersenspiel.php'">Zum Börsenspiel</button>
         <?php else: ?>
           <button disabled>Bitte zuerst anmelden</button>
         <?php endif; ?>
@@ -70,7 +70,7 @@ session_start();
         <h3>Hühner-Roulette</h3>
         <p>Riskieren Sie Ihr Spielgeld in unserem humorvollen 50/50-Spiel! Unser Huhn überquert die Straße – manchmal sicher, manchmal mit einer spektakulären Explosion. Ein einzigartiges Glücksspiel, das Spaß und Spannung miteinander verbindet!</p>
         <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
-          <button onclick="location.href='huenchnspiel.php'">Jetzt spielen</button>
+          <button onclick="location.href='pages/huenchnspiel.php'">Jetzt spielen</button>
         <?php else: ?>
           <button disabled>Bitte zuerst anmelden</button>
         <?php endif; ?>
@@ -80,7 +80,7 @@ session_start();
 
   <footer>
     <div class="footer-container">
-     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="impressum.php">Impressum</a>
+     &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="pages/impressum.php">Impressum</a>
     </div>
   </footer>
 </body>

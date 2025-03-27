@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-    header('Location: registrierung.php');
+    header('Location: ../pages/registrierung.php');
     exit;
 }
 ?>
@@ -10,14 +10,14 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 <head>
   <meta charset="UTF-8">
   <title>Hühner-Roulette</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body class="game-page">
   <header>
     <div class="header-container">
       <div class="nav-left">
-        <a href="index.php">Startseite</a>
-        <a href="logout.php">Logout</a>
+        <a href="../index.php">Startseite</a>
+        <a href="../pages/logout.php">Logout</a>
       </div>
       <div class="header-center">
         <h1>Hühner-Roulette</h1>
@@ -46,8 +46,8 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
       </div>
 
       <div id="road">
-        <!-- Huhn-Bild -->
-        <img id="chicken" src="chicken.png" alt="Huhn">
+        <!-- Huhn-Bild - Pfad angepasst -->
+        <img id="chicken" src="../assets/images/chicken.png" alt="Huhn">
         <!-- Schritt-Markierungen -->
         <div id="steps"></div>
       </div>
@@ -61,7 +61,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     </div>
   </div>
 
-  <script src="huenchnspiel.js"></script>
+  <script src="../assets/js/huenchnspiel.js"></script>
 </body>
 </html>
 <footer>

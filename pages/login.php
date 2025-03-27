@@ -2,7 +2,7 @@
 session_start();
 
 $fehler = '';
-require_once 'db.php';
+require_once '../includes/db.php'; // Pfad anpassen
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['vorname']      = $user['vorname'];
         $_SESSION['nachname']     = $user['nachname'];
 
-        header('Location: index.php');
+        header('Location: ../index.php');
         exit;
     } else {
         $fehler = "Anmeldung fehlgeschlagen! E-Mail oder Passwort falsch.";
@@ -35,8 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <title>Anmeldung</title>
-  <!-- Wir nutzen das Registrierungs-Stylesheet, damit die Login-Seite optisch übereinstimmt -->
-  <link rel="stylesheet" href="registrierung.css">
+  <link rel="stylesheet" href="../assets/css/registrierung.css">
 </head>
 <body>
   <div class="container">
@@ -60,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </form>
 
       <p class="back-link">
-        <a href="index.php">Zurück zur Startseite</a> |
+        <a href="../index.php">Zurück zur Startseite</a> |
         <a href="registrierung.php">Noch kein Konto? Registrieren</a>
       </p>
     </div>

@@ -11,8 +11,8 @@
  * Falls nicht, wird beim zweiten Feld (emailWdh) eine Fehlermeldung gesetzt.
  */
 function checkEmail() {
-  const email      = document.getElementById('email');
-  const emailWdh   = document.getElementById('emailWdh');
+  const email = document.getElementById('email');
+  const emailWdh = document.getElementById('emailWdh');
 
   if (!email.value || !emailWdh.value) {
     emailWdh.setCustomValidity("");
@@ -31,7 +31,7 @@ function checkEmail() {
  */
 function checkGeburtsdatum() {
   const dateInput = document.getElementById('geburtsdatum');
-  const value     = dateInput.value;
+  const value = dateInput.value;
 
   if (!value) {
     dateInput.setCustomValidity("");
@@ -40,8 +40,8 @@ function checkGeburtsdatum() {
 
   const birth = new Date(value + "T00:00:00");
   const today = new Date();
-  let alter   = today.getFullYear() - birth.getFullYear();
-  let m       = today.getMonth() - birth.getMonth();
+  let alter = today.getFullYear() - birth.getFullYear();
+  let m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
     alter--;
   }

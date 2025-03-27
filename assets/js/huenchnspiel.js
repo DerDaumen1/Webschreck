@@ -24,7 +24,7 @@ async function startGame() {
   }
 
   // Einsatz vom Konto abziehen
-  const response = await fetch('api.php?action=trade', {
+  const response = await fetch('../includes/api.php?action=trade', { // Pfad korrigieren
     method: "POST",
     body: new URLSearchParams({
       typ: 'huhn_bet',
@@ -96,7 +96,7 @@ function endGame(success) {
 }
 
 function updateBalance(amount) {
-  fetch('api.php?action=trade', {
+  fetch('../includes/api.php?action=trade', { // Pfad korrigieren
     method: "POST",
     body: new URLSearchParams({
       typ: 'huhn_win',

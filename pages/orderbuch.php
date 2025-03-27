@@ -1,10 +1,10 @@
 <?php
 session_start();
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-    header('Location: login.php');
+    header('Location: ../pages/login.php');
     exit;
 }
-require_once 'db.php';
+require_once __DIR__ . '/../includes/db.php'; // Pfad ist korrekt
 
 // Alle Orders des aktuellen Benutzers laden
 $user_id = $_SESSION['user_id'];
@@ -17,14 +17,14 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
   <meta charset="UTF-8">
   <title>Orderbuch</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
 <header>
   <div class="header-container orderbuch-header-container">
     <div class="nav-left">
-      <a href="index.php">Zur Startseite</a>
-      <a href="boersenspiel.php">Zum Börsenspiel</a>
+      <a href="../index.php">Zur Startseite</a>
+      <a href="../pages/boersenspiel.php">Zum Börsenspiel</a>
     </div>
     <div class="header-center orderbuch-header-center">
       <h1>Orderbuch</h1>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php';
+require_once __DIR__ . '/../includes/db.php';
 
 // Array für serverseitige Fehlermeldungen
 $fehler = [];
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['anzahl_aktien'] = 0;
 
         $erfolg = true;
-        header('Location: index.php');
+        header('Location: ../index.php');
         exit;
     }
 }
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <title>Registrierung Börsenspiel</title>
-  <link rel="stylesheet" href="registrierung.css">
+  <link rel="stylesheet" href="../assets/css/registrierung.css">
 </head>
 <body>
 
@@ -210,15 +210,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button type="submit">Registrieren</button>
       </form>
-      <p class="back-link"><a href="index.php">Zurück zur Startseite</a></p>
+      <p class="back-link"><a href="../index.php">Zurück zur Startseite</a></p>
 
     <?php else: ?>
       <p class="success">Erfolgreich registriert!</p>
-      <p class="back-link"><a href="index.php">Weiter zur Startseite</a></p>
+      <p class="back-link"><a href="../index.php">Weiter zur Startseite</a></p>
     <?php endif; ?>
   </div>
 </div>
 
-<script src="registrierung.js"></script>
+<script src="../assets/js/registrierung.js"></script>
 </body>
 </html>

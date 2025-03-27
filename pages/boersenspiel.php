@@ -3,7 +3,7 @@ session_start();
 
 // Prüfen, ob eingeloggt
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
-    header('Location: registrierung.php');
+    header('Location: ../pages/registrierung.php');
     exit;
 }
 
@@ -39,7 +39,7 @@ if (!isset($_SESSION['stock_history'])) {
 <head>
   <meta charset="UTF-8">
   <title>Börsenspiel (AJAX-Version mit ausgelagertem JS)</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
   <!-- Optionales Inline-Styling, damit die Meldung weiter unten steht -->
   <style>
     .meldung {
@@ -52,10 +52,10 @@ if (!isset($_SESSION['stock_history'])) {
 <header>
   <div class="header-container">
     <div class="nav-left">
-      <a href="index.php">Startseite</a>
-      <a href="stock_overview.php">Aktienübersicht</a>
-      <a href="orderbuch.php">Orderbuch</a>
-      <a href="logout.php">Logout</a>
+      <a href="../index.php">Startseite</a>
+      <a href="../pages/stock_overview.php">Aktienübersicht</a>
+      <a href="../pages/orderbuch.php">Orderbuch</a>
+      <a href="../pages/logout.php">Logout</a>
     </div>
     <div class="header-center">
       <h1>Börsenspiel (AJAX-Version)</h1>
@@ -152,6 +152,6 @@ if (!isset($_SESSION['stock_history'])) {
   </div>
 </footer>
 
-<script src="boerse.js"></script>
+<script src="../assets/js/boerse.js"></script>
 </body>
 </html>

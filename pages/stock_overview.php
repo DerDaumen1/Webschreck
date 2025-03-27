@@ -9,7 +9,7 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
 // user_id aus Session
 $user_id = $_SESSION['user_id'] ?? 0;
 
-require_once 'db.php';
+require_once __DIR__ . '/../includes/db.php';
 
 // Minimal-Demo: Falls noch keine Stocks in Session
 if (!isset($_SESSION['all_stocks'])) {
@@ -33,7 +33,7 @@ $stocks = $_SESSION['all_stocks'];
 <head>
   <meta charset="UTF-8">
   <title>Aktienübersicht (mit Carousel)</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body>
 
@@ -118,6 +118,6 @@ $stocks = $_SESSION['all_stocks'];
 </script>
 
 <!-- JS-Datei für Carousel, AJAX etc. -->
-<script src="stock_overview.js"></script>
+<script src="../assets/js/stock_overview.js"></script>
 </body>
 </html>

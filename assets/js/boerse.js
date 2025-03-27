@@ -95,7 +95,7 @@ function initGame() {
 function updateStockHolding() {
   // Hier wird der Aktien-Selektor direkt ausgelesen, falls nötig
   const stockId = document.getElementById("stockSelect").value || selectedStockId;
-  fetch("api.php?action=get_holding&stock_id=" + stockId)
+  fetch("../includes/api.php?action=get_holding&stock_id=" + stockId) // Pfad korrigieren
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -129,7 +129,7 @@ function trade(action) {
   // Ersetze den folgenden fetch-Aufruf:
   // fetch("trade.php", {
   // Neuer fetch-Aufruf:
-  fetch("api.php?action=trade", {
+  fetch("../includes/api.php?action=trade", { // Pfad korrigieren
     method: "POST",
     body: fd
   })
@@ -236,7 +236,7 @@ function updateAllKurse() {
     stockHistory[stock.id].push(stock.briefkurs);
 
     let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
-    fetch("api.php?action=update_stocks", {
+    fetch("../includes/api.php?action=update_stocks", { // Pfad korrigieren
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -259,7 +259,7 @@ function updateAllKurse() {
  * und schreibt sie in den Container #historyContainer.
  */
 function updateHistoryDisplay() {
-  fetch("api.php?action=get_history&stock_id=" + selectedStockId)
+  fetch("../includes/api.php?action=get_history&stock_id=" + selectedStockId) // Pfad korrigieren
     .then(res => res.json())
     .then(data => {
       if (!data.success) {
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Neue Funktion, um eine Börsenspiel-Session zu starten
 function startGameSession() {
   // Neues: Aktienhistorie zurücksetzen
-  fetch("api.php?action=reset_history")
+  fetch("../includes/api.php?action=reset_history") // Pfad korrigieren
     .then(res => res.json())
     .then(data => {
       if (!data.success) {

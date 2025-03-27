@@ -7,7 +7,8 @@ if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
     exit;
 }
 
-require_once 'db.php';
+// Bitte prüfen Sie, ob der folgende Include-Pfad noch korrekt ist (an Ihr neues Verzeichnis anpassen):
+require_once __DIR__ . '/db.php'; // Pfad ist korrekt
 
 function parseCurrency($value) {
     return round((float)str_replace(',', '.', $value), 2);

@@ -43,7 +43,7 @@ nextBtn.addEventListener("click", () => {
 function loadAllHistories() {
     stocks.forEach(stock => {
         const stockId = stock.id;
-        fetch("api.php?action=get_history&stock_id=" + stockId)
+        fetch("../includes/api.php?action=get_history&stock_id=" + stockId) // Pfad korrigieren
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
@@ -76,14 +76,14 @@ function loadAllHistories() {
 function updateCurrentValues() {
     stocks.forEach(stock => {
         // Zuerst den aktuellen Kurs aus der History abrufen
-        fetch("api.php?action=get_history&stock_id=" + stock.id) // geänderter Endpunkt
+        fetch("../includes/api.php?action=get_history&stock_id=" + stock.id) // Pfad korrigieren
             .then(res => res.json())
             .then(historyData => {
                 if (historyData.success && historyData.history.length > 0) {
                     // Nehmen wir an, der erste Eintrag ist der neueste Kurs
                     let latestPrice = parseFloat(historyData.history[0].kurs);
                     // Jetzt den aktuellen Bestand abfragen:
-                    fetch("api.php?action=get_holding&stock_id=" + stock.id) // geänderter Endpunkt
+                    fetch("../includes/api.php?action=get_holding&stock_id=" + stock.id) // Pfad korrigieren
                         .then(res => res.json())
                         .then(holdingData => {
                             if (holdingData.success) {
