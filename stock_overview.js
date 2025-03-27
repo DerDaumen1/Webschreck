@@ -59,10 +59,42 @@ function loadAllHistories() {
             .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId, err));
     });
 }
+function updateCurrentValues() {
+    stocks.forEach(stock => {
+        // Zuerst den aktuellen Kurs aus der History abrufen
+        fetch("get_history.php?stock_id=" + stock.id)
+            .then(res => res.json())
+            .then(historyData => {
+                if (historyData.success && historyData.history.length > 0) {
+                    // Nehmen wir an, der erste Eintrag ist der neueste Kurs
+                    let latestPrice = parseFloat(historyData.history[0].kurs);
+                    // Jetzt den aktuellen Bestand abfragen
+                    fetch("get_holding.php?stock_id=" + stock.id)
+                        .then(res => res.json())
+                        .then(holdingData => {
+                            if (holdingData.success) {
+                                let currentValue = holdingData.bestand * latestPrice;
+                                let elem = document.getElementById("currentValue-" + stock.id);
+                                if (elem) {
+                                    elem.textContent = currentValue.toFixed(2).replace('.', ',');
+                                }
+                            } else {
+                                console.error("Bestand-Fehler für Aktie " + stock.id + ":", holdingData.message);
+                            }
+                        })
+                        .catch(err => console.error("AJAX-Fehler bei Bestandsabfrage:", err));
+                } else {
+                    console.error("History-Fehler für Aktie " + stock.id + ":", historyData.message);
+                }
+            })
+            .catch(err => console.error("AJAX-Fehler bei History-Abfrage:", err));
+    });
+}
 
-// --- Seite initialisieren ---
+// Rufe die Funktion zusammen mit den anderen Initialisierungen auf
 document.addEventListener("DOMContentLoaded", () => {
     loadAllHistories();
     showPage(0);
     updateArrows();
+    updateCurrentValues(); // Neuer Aufruf, um den aktuellen Wert zu berechnen und anzuzeigen
 });
