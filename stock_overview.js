@@ -112,6 +112,14 @@ function updateGlobalPortfolio() {
     document.getElementById("aktienDepotDisplay").textContent = depotValue.toFixed(2).replace('.', ',') + " €";
     document.getElementById("depotGesamtDisplay").textContent = depotGesamt.toFixed(2).replace('.', ',') + " €";
     document.getElementById("gewinnVerlustDisplay").textContent = gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+
+    // Setze die Textfarbe je nach Gewinn/Verlust
+    const gvElem = document.getElementById("gewinnVerlustDisplay");
+    if (gewinnVerlust >= 0) {
+        gvElem.style.color = "green";
+    } else {
+        gvElem.style.color = "red";
+    }
 }
 
 // Rufe die Funktion zusammen mit den anderen Initialisierungen auf
