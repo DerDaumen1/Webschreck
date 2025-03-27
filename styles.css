@@ -424,7 +424,8 @@ body.game-page #gameContainer .card {
     text-align: center;
   }
 
-  .nav-left, .nav-right {
+  .nav-left,
+  .nav-right {
     align-items: center;
     margin: 0.5rem 0;
   }
@@ -471,7 +472,8 @@ body.game-page #gameContainer .card {
     text-align: center;
   }
 
-  .nav-left, .nav-right {
+  .nav-left,
+  .nav-right {
     align-items: center;
     margin: 0.5rem 0;
   }
@@ -533,4 +535,16 @@ body.game-page #gameContainer .card {
 .depot-info {
   margin: 5px;
   padding: 5px;
+}
+
+
+/* Gewinn/Verlust Styles vereinheitlichen */
+.profit-positive {
+  color: green;
+  /* weitere Styles falls gewünscht... */
+}
+
+.profit-negative {
+  color: red;
+  /* weitere Styles falls gewünscht... */
 }

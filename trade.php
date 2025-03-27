@@ -107,7 +107,8 @@ elseif ($typ === 'sell' && !empty($_POST['anzahl'])) {
                 'prov' => $provision
             ]);
             $response["success"] = true;
-            $response["message"] = "Verkauf erfolgreich! {$anzahl} Aktien";
+            $response["message"] = "Verkauf erfolgreich! {$anzahl} Aktien<br>Provision: " 
+                . number_format($provision, 2, ',', '.') . " €";
         } catch (PDOException $e) {
             $response["message"] = "DB-Fehler: " . $e->getMessage();
         }

@@ -47,7 +47,7 @@ if (!isset($_SESSION['stock_history'])) {
     }
   </style>
 </head>
-<body onload="initGame();">
+<body>
 
 <header>
   <div class="header-container">
@@ -102,6 +102,8 @@ if (!isset($_SESSION['stock_history'])) {
       <div id="timerDisplay"></div>
 
       <div class="meldung" id="meldungDisplay"></div>
+      <!-- Angepasster Start-Button -->
+      <button class="btn" id="startGameBtn" onclick="startGameSession()" style="display: block; margin: 1rem auto;">Spiel Starten</button>
     </div>
 
     <!-- Kauf/Verkauf-Steuerung -->
@@ -127,10 +129,11 @@ if (!isset($_SESSION['stock_history'])) {
 
       <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
       <p id="geldkursDisplay">Geldkurs: 99.00 €</p>
-
+      
       <div class="form-group">
         <label for="anzahlInput">Anzahl:</label>
         <input type="number" id="anzahlInput" value="1" min="1" />
+        <!-- Gemeinsame Zeile für alle Buttons -->
         <div class="trade-row">
           <button class="btn" onclick="trade('buy')">Aktien kaufen</button>
           <button class="btn" onclick="trade('sell')">Aktien verkaufen</button>
