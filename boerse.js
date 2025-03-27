@@ -357,13 +357,13 @@ function updateAnzeigen() {
  * Aktualisiert den Countdown-Timer
  */
 function updateGameTimer() {
-  if (gameTimerSeconds <= 0) return;
   gameTimerSeconds--;
-
-  if (gameTimerSeconds === 0) {
+  if (gameTimerSeconds <= 0) {
+    clearInterval(gameTimerInterval);
+    clearInterval(updateInterval);
     trade('beenden');
+    return; // Spiel beenden, keine weitere Aktualisierung
   }
-
   let min = Math.floor(gameTimerSeconds / 60);
   let sec = gameTimerSeconds % 60;
   let text = `Verbleibende Spielzeit: ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')} min`;
