@@ -15,6 +15,10 @@ let currentPhase = "";
 let gameTimerSeconds = 600; // 10 Minuten Spielzeit
 let updateInterval;         // Handle für updateAllKurse
 
+// Add global variables for cost basis tracking:
+let averageCost = {};
+let holdings = {};
+
 /**
  * Wird beim Laden der Seite (onload) ausgeführt.
  * Initialisiert Canvas, startet Hintergrund-Updates, Timer und History-Reload.
@@ -45,6 +49,11 @@ function initGame() {
     { id: 9, name: "Börsenspiel SE", briefkurs: 100, geldkurs: 99 },
     { id: 10, name: "Fantasy PLC", briefkurs: 100, geldkurs: 99 }
   ];
+  // Initialize cost basis and holdings per stock:
+  stocksArray.forEach(s => {
+    averageCost[s.id] = 100;
+    holdings[s.id] = 0;
+  });
 
   // Für jede Aktie ein eigenes History-Array anlegen
   for (let s of stocksArray) {
@@ -99,7 +108,7 @@ function updateStockHolding() {
  * Nach einem erfolgreichen Trade wird updateStockHolding() aufgerufen.
  */
 function trade(action) {
-  const anzahl = document.getElementById("anzahlInput").value;
+  const anzahl = parseInt(document.getElementById("anzahlInput").value);
   const stock = stocksArray.find(s => s.id === selectedStockId);
   if (!stock) {
     alert("Aktie nicht gefunden!");
@@ -123,6 +132,22 @@ function trade(action) {
       if (data.success) {
         document.getElementById("spielgeldDisplay").textContent =
           parseFloat(data.spielgeld).toFixed(2).replace('.', ',');
+        // Update cost basis and holdings on successful trade:
+        if (action === 'buy') {
+          // Calculate commission similar to the server:
+          let orderwert = anzahl * stock.briefkurs;
+          let provision = Math.max(Math.min(orderwert * 0.0025 + 4.95, 59.99), 9.99);
+          // Effective cost per share including commission:
+          let effectiveCost = stock.briefkurs + (provision / anzahl);
+          let oldQty = holdings[selectedStockId] || 0;
+          let oldTotalCost = averageCost[selectedStockId] * oldQty;
+          let newTotalCost = oldTotalCost + (effectiveCost * anzahl);
+          holdings[selectedStockId] = oldQty + anzahl;
+          averageCost[selectedStockId] = newTotalCost / holdings[selectedStockId];
+        } else if (action === 'sell') {
+          let oldQty = holdings[selectedStockId] || 0;
+          holdings[selectedStockId] = Math.max(oldQty - anzahl, 0);
+        }
         // Bestand nach einem erfolgreichen Trade neu laden
         updateStockHolding();
       }
@@ -278,6 +303,21 @@ function updateAnzeigen() {
   document.getElementById("geldkursDisplay").textContent =
     "Geldkurs: " + stock.geldkurs.toFixed(2) + " €";
 
+  // Use holdings from our tracking; fallback to DOM if necessary.
+  let currentHolding = holdings[selectedStockId] || parseInt(document.getElementById("aktienBestandDisplay").textContent) || 0;
+  let costBasis = averageCost[selectedStockId] || 100;
+  let profit = (stock.briefkurs - costBasis) * currentHolding;
+
+  const profitEl = document.getElementById("profitDisplay");
+  profitEl.textContent = profit.toFixed(2).replace('.', ',');
+  if (profit >= 0) {
+    profitEl.classList.add("profit-positive");
+    profitEl.classList.remove("profit-negative");
+  } else {
+    profitEl.classList.add("profit-negative");
+    profitEl.classList.remove("profit-positive");
+  }
+
   const mp = document.getElementById("marketPhaseDisplay");
   if (currentPhase === "Bullenmarkt") {
     mp.textContent = "Bullenmarkt (Chance auf Steigerung: 75%)";
@@ -287,21 +327,6 @@ function updateAnzeigen() {
     mp.style.color = "red";
   } else {
     mp.textContent = "";
-  }
-
-  let spielgeldText = document.getElementById("spielgeldDisplay").textContent.replace(',', '.');
-  let spielgeld = parseFloat(spielgeldText) || 0;
-  let liveProfit = spielgeld - 50000;
-  const profitEl = document.getElementById("profitDisplay");
-  let profitText = liveProfit.toFixed(2).replace('.', ',');
-  profitEl.textContent = profitText;
-
-  if (liveProfit >= 0) {
-    profitEl.classList.add("profit-positive");
-    profitEl.classList.remove("profit-negative");
-  } else {
-    profitEl.classList.add("profit-negative");
-    profitEl.classList.remove("profit-positive");
   }
 }
 
