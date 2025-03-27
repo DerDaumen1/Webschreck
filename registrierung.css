@@ -1,4 +1,7 @@
-/* Grundlegendes Layout für die Registrierungsseite */
+/* ========================== */
+/* 💻 BASISSTIL (PC)          */
+/* ========================== */
+
 body {
     background-color: #f4f4f4;
     font-family: Arial, sans-serif;
@@ -6,17 +9,14 @@ body {
     padding: 0;
 }
 
-/* Container zentriert die Card */
 .container {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* vertikale Zentrierung */
     min-height: 100vh;
     padding: 2rem;
 }
 
-/* Card-Optik */
 .card {
     background: #fff;
     padding: 2rem;
@@ -26,13 +26,12 @@ body {
     max-width: 600px;
 }
 
-/* Überschrift */
 h1 {
     text-align: center;
     margin-bottom: 1rem;
+    font-size: 2rem;
 }
 
-/* Fehlermeldung */
 .fehler {
     background-color: #ffe0e0;
     border: 1px solid #ffaaaa;
@@ -40,15 +39,14 @@ h1 {
     margin-bottom: 1rem;
     color: #d00000;
     border-radius: 4px;
+    font-size: 0.95rem;
 }
 
-/* Formularstruktur */
 form {
     display: flex;
     flex-direction: column;
 }
 
-/* Formularelemente */
 .form-group {
     margin-bottom: 1rem;
     display: flex;
@@ -58,15 +56,16 @@ form {
 .form-group label {
     margin-bottom: 0.5rem;
     font-weight: bold;
+    font-size: 1rem;
 }
 
 .form-group input {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    font-size: 1rem;
 }
 
-/* Button */
 button {
     padding: 10px;
     background-color: #0d6efd;
@@ -82,7 +81,6 @@ button:hover {
     background-color: #0b5ed7;
 }
 
-/* Link zurück zur Startseite */
 .back-link {
     text-align: center;
     margin-top: 1rem;
@@ -97,10 +95,68 @@ button:hover {
     text-decoration: underline;
 }
 
-/* Erfolgsmeldung */
 .success {
     text-align: center;
     font-size: 1.2rem;
     color: green;
     margin-bottom: 1rem;
+}
+
+/* ========================== */
+/* 📱 HANDY (unter 768px)     */
+/* ========================== */
+
+@media screen and (max-width: 767px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .card {
+        padding: 1rem;
+        max-width: 100%;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .form-group input {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    button {
+        font-size: 1.1rem;
+        padding: 14px;
+    }
+
+    .fehler {
+        font-size: 1rem;
+    }
+}
+
+/* ========================== */
+/* 📲 TABLET (768–1024px)     */
+/* ========================== */
+
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+    .card {
+        max-width: 90%;
+        padding: 1.5rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .form-group input {
+        font-size: 1rem;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 12px;
+    }
 }

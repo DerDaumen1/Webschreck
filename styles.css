@@ -415,6 +415,117 @@ body.game-page #gameContainer .card {
   margin: 0 auto;
 }
 
+/* ========================================= */
+/* ▶▶ RESPONSIVES DESIGN (Tablet & Handy) ◀◀ */
+/* ========================================= */
+
+/* Tablet (768px – 1024px) */
+@media screen and (max-width: 1024px) {
+  header .header-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .nav-left, .nav-right {
+    align-items: center;
+    margin: 0.5rem 0;
+  }
+
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .three-columns .card {
+    flex: 1 1 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .carousel-container {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .carousel-wrapper {
+    flex-wrap: nowrap;
+  }
+
+  .stock-card {
+    flex: 0 0 45%;
+    margin: 1rem;
+  }
+}
+
+/* Handy (unter 768px) */
+@media screen and (max-width: 767px) {
+  header .header-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .nav-left, .nav-right {
+    align-items: center;
+    margin: 0.5rem 0;
+  }
+
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    padding: 1rem;
+    max-width: 100%;
+  }
+
+  .three-columns .card {
+    flex: 1 1 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .carousel-container {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .carousel-wrapper {
+    flex-wrap: nowrap;
+  }
+
+  .stock-card {
+    flex: 0 0 90%;
+    margin: 1rem auto;
+  }
+
+  #road {
+    height: 100px;
+  }
+
+  #chicken {
+    width: 120px;
+    height: 120px;
+  }
+
+  #car {
+    width: 240px;
+    height: 120px;
+  }
+
+  #explosion {
+    width: 200px;
+    height: 200px;
+  }
+}
+
 .depot-info {
   margin: 5px;
   padding: 5px;
