@@ -1,6 +1,9 @@
 // stocks: Array aller Aktien aus PHP
 const stocks = window.phpStocks;
 
+// Neue globale Variable zur Speicherung aktueller Aktienwerte
+window.currentStockValues = {};
+
 // --- Carousel-Logik ---
 const cardsWrapper = document.getElementById("cardsWrapper");
 const totalCards = stocks.length;
@@ -78,6 +81,10 @@ function updateCurrentValues() {
                                 if (elem) {
                                     elem.textContent = currentValue.toFixed(2).replace('.', ',');
                                 }
+                                // Speichern des berechneten Werts
+                                window.currentStockValues[stock.id] = currentValue;
+                                // Aktualisiere das globale Portfolio
+                                updateGlobalPortfolio();
                             } else {
                                 console.error("Bestand-Fehler für Aktie " + stock.id + ":", holdingData.message);
                             }
@@ -90,6 +97,23 @@ function updateCurrentValues() {
             .catch(err => console.error("AJAX-Fehler bei History-Abfrage:", err));
     });
 }
+
+function updateGlobalPortfolio() {
+    let depotValue = 0;
+    for (let id in window.currentStockValues) {
+        depotValue += window.currentStockValues[id];
+    }
+    // Nutze das per PHP eingebundene aktuelle Spielgeld
+    let spielgeld = parseFloat(window.currentSpielgeld);
+    let depotGesamt = spielgeld + depotValue;
+    let gewinnVerlust = depotGesamt - window.startKapital;
+
+    // Aktualisierung der globalen Anzeige
+    document.getElementById("aktienDepotDisplay").textContent = "Aktienwert: " + depotValue.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("depotGesamtDisplay").textContent = "Portfolio-Wert: " + depotGesamt.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("gewinnVerlustDisplay").textContent = "Gewinn/Verlust: " + gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+}
+
 
 // Rufe die Funktion zusammen mit den anderen Initialisierungen auf
 document.addEventListener("DOMContentLoaded", () => {
