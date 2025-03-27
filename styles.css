@@ -414,3 +414,8 @@ body.game-page #gameContainer .card {
   /* Du kannst diesen Wert anpassen, wenn du wirklich 100% willst */
   margin: 0 auto;
 }
+
+.depot-info {
+  margin: 5px;
+  padding: 5px;
+}

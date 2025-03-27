@@ -108,12 +108,11 @@ function updateGlobalPortfolio() {
     let depotGesamt = spielgeld + depotValue;
     let gewinnVerlust = depotGesamt - window.startKapital;
 
-    // Aktualisierung der globalen Anzeige
-    document.getElementById("aktienDepotDisplay").textContent = "Aktienwert: " + depotValue.toFixed(2).replace('.', ',') + " €";
-    document.getElementById("depotGesamtDisplay").textContent = "Portfolio-Wert: " + depotGesamt.toFixed(2).replace('.', ',') + " €";
-    document.getElementById("gewinnVerlustDisplay").textContent = "Gewinn/Verlust: " + gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+    // Aktualisierung der globalen Anzeige – jetzt ohne doppelte Labels
+    document.getElementById("aktienDepotDisplay").textContent = depotValue.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("depotGesamtDisplay").textContent = depotGesamt.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("gewinnVerlustDisplay").textContent = gewinnVerlust.toFixed(2).replace('.', ',') + " €";
 }
-
 
 // Rufe die Funktion zusammen mit den anderen Initialisierungen auf
 document.addEventListener("DOMContentLoaded", () => {
@@ -121,4 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showPage(0);
     updateArrows();
     updateCurrentValues(); // Neuer Aufruf, um den aktuellen Wert zu berechnen und anzuzeigen
+
+    // Toggle event removed because depot info is now always visible in the header.
 });

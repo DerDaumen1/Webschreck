@@ -43,7 +43,6 @@ $stocks = $_SESSION['all_stocks'];
 </head>
 <body>
 
-<!-- Neuer Header-Stil -->
 <header>
   <div class="header-container">
     <div class="nav-left">
@@ -54,12 +53,25 @@ $stocks = $_SESSION['all_stocks'];
       <h1>Aktienübersicht (mit Carousel)</h1>
     </div>
     <div class="nav-right">
-  <span class="user-stocks">Aktien Gesamt: <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
-  <span id="spielgeldDisplayPortfolio">Spielgeld: <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?> €</span>
-  <span id="aktienDepotDisplay">Aktienwert: 0,00 €</span>
-  <span id="depotGesamtDisplay">Portfolio-Wert: 0,00 €</span>
-  <span id="gewinnVerlustDisplay">Gewinn/Verlust: 0,00 €</span>
-</div>
+      <!-- Depot Informationen direkt im Header -->
+      <div id="depotContent" style="color:#fff; background-color:transparent; border:none; padding: 15px; border-radius: 8px; text-align: center;">
+        <div class="depot-info">
+          <strong>Aktien Gesamt:</strong> <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+        </div>
+        <div class="depot-info">
+          <strong>Spielgeld:</strong> <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?> €
+        </div>
+        <div class="depot-info">
+          <strong>Aktienwert:</strong> <span id="aktienDepotDisplay">0,00 €</span>
+        </div>
+        <div class="depot-info">
+          <strong>Portfolio-Wert:</strong> <span id="depotGesamtDisplay">0,00 €</span>
+        </div>
+        <div class="depot-info">
+          <strong>Gewinn/Verlust:</strong> <span id="gewinnVerlustDisplay">0,00 €</span>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
