@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Europe/Berlin'); // Setze die korrekte Zeitzone
 
 // Nur fortfahren, wenn eingeloggt
 if (!isset($_SESSION['angemeldet']) || $_SESSION['angemeldet'] !== true) {
@@ -20,6 +21,12 @@ try {
     exit;
 }
 
+// Beim ersten Aufruf der Session alle alten Einträge entfernen
+if (!isset($_SESSION['session_started'])) {
+    $pdo->exec("DELETE FROM stock_history");
+    $_SESSION['session_started'] = true;
+}
+
 // JSON-Daten empfangen
 $data = json_decode(file_get_contents("php://input"), true);
 if (!$data || !isset($data['stock_id']) || !isset($data['briefkurs'])) {
@@ -31,16 +38,14 @@ $stockId   = (int)$data['stock_id'];
 $briefkurs = (float)$data['briefkurs'];
 
 try {
-    // Ermittle den letzten tick_time-Wert für diese Aktie
+    // Statt den neuen Tick immer mit dem aktuellen Datum zu setzen,
+    // prüfe, ob bereits ein letzter Tick vorhanden ist und addiere einen Tag darauf:
     $stmt = $pdo->prepare("SELECT MAX(tick_time) AS last_tick FROM stock_history WHERE stock_id = ?");
     $stmt->execute([$stockId]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
     if ($result && $result['last_tick']) {
-        // Neuer Zeitpunkt: Letzter Tick + 1 Tag
         $newTickTime = date("Y-m-d H:i:s", strtotime($result['last_tick'] . " +1 day"));
     } else {
-        // Falls kein Eintrag vorhanden, verwende NOW()
         $newTickTime = date("Y-m-d H:i:s");
     }
 
