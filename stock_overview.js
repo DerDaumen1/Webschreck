@@ -53,8 +53,18 @@ function loadAllHistories() {
                 const container = document.getElementById("historyContainer-" + stockId);
                 if (!container) return;
                 let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
-                data.history.forEach(row => {
-                    html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
+                data.history.forEach((row, i) => {
+                    let price = parseFloat(row.kurs);
+                    let arrow = "";
+                    if (i < data.history.length - 1) {
+                        let nextPrice = parseFloat(data.history[i + 1].kurs);
+                        if (price > nextPrice) {
+                            arrow = ' <span style="color:green;">&#9650;</span>';
+                        } else if (price < nextPrice) {
+                            arrow = ' <span style="color:red;">&#9660;</span>';
+                        }
+                    }
+                    html += `<tr><td>${row.tick_time}</td><td>${price.toFixed(2)} €${arrow}</td></tr>`;
                 });
                 html += "</tbody></table>";
                 container.innerHTML = html;
@@ -62,6 +72,7 @@ function loadAllHistories() {
             .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId, err));
     });
 }
+
 function updateCurrentValues() {
     stocks.forEach(stock => {
         // Zuerst den aktuellen Kurs aus der History abrufen
