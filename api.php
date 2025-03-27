@@ -212,6 +212,16 @@ switch ($action) {
         echo json_encode($response);
         break;
         
+    case 'reset_history':
+        try {
+            $pdo->exec("DELETE FROM stock_history");
+            unset($_SESSION['session_started']);
+            echo json_encode(["success" => true, "message" => "Historie zurückgesetzt"]);
+        } catch (PDOException $e) {
+            echo json_encode(["success" => false, "message" => "DB-Fehler: " . $e->getMessage()]);
+        }
+        break;
+        
     default:
         echo json_encode(["success" => false, "message" => "Unbekannte Aktion"]);
         break;

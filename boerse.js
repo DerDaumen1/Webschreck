@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Neue Funktion, um eine Börsenspiel-Session zu starten
 function startGameSession() {
   // Neues: Aktienhistorie zurücksetzen
-  fetch("reset_history.php")
+  fetch("api.php?action=reset_history")
     .then(res => res.json())
     .then(data => {
       if (!data.success) {
