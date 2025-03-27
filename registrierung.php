@@ -1,5 +1,4 @@
 <?php
-// registrierung.php
 session_start();
 
 $dbHost = 'localhost';
@@ -10,7 +9,7 @@ $dbName = 'webdatabase';
 // PDO-Verbindung herstellen
 $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8", $dbUser, $dbPass);
 
-// Array für Fehlermeldungen
+// Array für serverseitige Fehlermeldungen
 $fehler = [];
 $erfolg = false;
 
@@ -26,29 +25,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $passwort      = trim($_POST['passwort'] ?? '');
     $passwortWdh   = trim($_POST['passwortWdh'] ?? '');
 
-    // E-Mail-Abgleich (serverseitig)
+    // Serverseitige Validierung: Wir prüfen nur, ob sich die Felder grundsätzlich unterscheiden.
+    // (Die Inline-Validierung via JavaScript übernimmt das bereits für E-Mail.)
     if ($email !== $emailWdh) {
         $fehler[] = "Die E-Mail-Adressen stimmen nicht überein.";
     }
-
-    // Passwörter abgleichen (serverseitig)
     if ($passwort !== $passwortWdh) {
         $fehler[] = "Die Passwörter stimmen nicht überein.";
     }
 
-    // TODO (Optional, empfehlenswert): weitere serverseitige Validierungen
-    // z. B. PLZ muss 5 Ziffern haben, Mindestalter 18 Jahre etc.
-    // if (!preg_match('/^\d{5}$/', $plz)) {
-    //    $fehler[] = "Die PLZ muss genau 5 Ziffern haben (serverseitig).";
-    // }
-    // ... und Alter-Berechnung
+    // (Optional: Weitere serverseitige Validierungen, z.B. PLZ oder Mindestalter.)
 
-    // Nur wenn keine Fehler vorliegen, in DB schreiben
+    // Nur wenn keine Fehler vorliegen -> in DB schreiben
     if (count($fehler) === 0) {
-        // Nutzer registrieren (Passwort wird gehasht)
         $stmt = $pdo->prepare("
-            INSERT INTO users (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien)
-            VALUES (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)
+            INSERT INTO users 
+              (anrede, vorname, nachname, email, passwort, geburtsdatum, plz, spielgeld, anzahl_aktien)
+            VALUES 
+              (:anrede, :vorname, :nachname, :email, :passwort, :geburtsdatum, :plz, 50000, 0)
         ");
         $stmt->execute([
             ':anrede'       => $anrede,
@@ -60,11 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':plz'          => $plz
         ]);
 
-        // Neuen User-ID in Session merken
         $_SESSION['user_id'] = $pdo->lastInsertId();
-
-        // Direkt einloggen und zur Startseite
-        $erfolg = true;
         $_SESSION['angemeldet']    = true;
         $_SESSION['nutzer_email']  = $email;
         $_SESSION['vorname']       = $vorname;
@@ -72,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['spielgeld']     = 50000;
         $_SESSION['anzahl_aktien'] = 0;
 
+        $erfolg = true;
         header('Location: index.php');
         exit;
     }
@@ -82,76 +73,152 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <title>Registrierung Börsenspiel</title>
-  <!-- Externes Stylesheet für Registrierungsseite -->
   <link rel="stylesheet" href="registrierung.css">
 </head>
 <body>
+
 <div class="container">
   <div class="card">
     <h1>Registrierung Börsenspiel</h1>
 
     <?php if (!$erfolg): ?>
-      <!-- Fehlermeldungen ausgeben -->
+      <!-- Serverseitige Fehler (allgemein) werden nur angezeigt, falls sie auftreten.
+           Die Inline-Fehlermeldungen bei den Feldern werden via JS und HTML5 abgebildet. -->
       <?php if (!empty($fehler)): ?>
         <div class="fehler">
           <ul>
-            <?php foreach ($fehler as $f): ?>
-              <li><?= htmlspecialchars($f) ?></li>
+            <?php foreach ($fehler as $err): ?>
+              <li><?= htmlspecialchars($err) ?></li>
             <?php endforeach; ?>
           </ul>
         </div>
       <?php endif; ?>
 
-      <!-- Wichtig: onsubmit="return validateForm()" damit JS prüft! -->
-      <form id="regForm" method="post" action="registrierung.php" onsubmit="return validateForm()">
+      <form id="regForm" method="post" action="registrierung.php">
+        
         <div class="form-group">
           <label for="anrede">Anrede</label>
-          <input type="text" id="anrede" name="anrede" required placeholder="Herr / Frau / Divers" />
+          <input 
+            type="text" 
+            id="anrede" 
+            name="anrede" 
+            required 
+            placeholder="Herr / Frau / Divers"
+            value="<?= htmlspecialchars($_POST['anrede'] ?? '') ?>" 
+          />
         </div>
 
         <div class="form-group">
           <label for="vorname">Vorname</label>
-          <input type="text" id="vorname" name="vorname" required placeholder="Max" />
+          <input 
+            type="text" 
+            id="vorname" 
+            name="vorname" 
+            required 
+            placeholder="Max"
+            value="<?= htmlspecialchars($_POST['vorname'] ?? '') ?>" 
+          />
         </div>
 
         <div class="form-group">
           <label for="nachname">Nachname</label>
-          <input type="text" id="nachname" name="nachname" required placeholder="Mustermann" />
+          <input 
+            type="text" 
+            id="nachname" 
+            name="nachname" 
+            required 
+            placeholder="Mustermann"
+            value="<?= htmlspecialchars($_POST['nachname'] ?? '') ?>" 
+          />
         </div>
 
         <div class="form-group">
           <label for="email">E-Mail</label>
-          <input type="email" id="email" name="email" required placeholder="beispiel@domain.de" />
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="beispiel@domain.de"
+            value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" 
+            oninput="checkEmail()" 
+            oninvalid="checkEmail()"
+          />
         </div>
 
         <div class="form-group">
           <label for="emailWdh">E-Mail wiederholen</label>
-          <input type="email" id="emailWdh" name="emailWdh" required placeholder="nochmal eingeben" />
+          <input 
+            type="email" 
+            id="emailWdh" 
+            name="emailWdh" 
+            required 
+            placeholder="nochmal eingeben"
+            value="<?= htmlspecialchars($_POST['emailWdh'] ?? '') ?>" 
+            oninput="checkEmail()" 
+            oninvalid="checkEmail()"
+          />
         </div>
 
         <div class="form-group">
           <label for="geburtsdatum">Geburtsdatum</label>
-          <input type="date" id="geburtsdatum" name="geburtsdatum" required />
+          <input 
+            type="date" 
+            id="geburtsdatum" 
+            name="geburtsdatum" 
+            required
+            value="<?= htmlspecialchars($_POST['geburtsdatum'] ?? '') ?>" 
+            oninput="checkGeburtsdatum()" 
+            oninvalid="checkGeburtsdatum()"
+          />
         </div>
 
         <div class="form-group">
           <label for="plz">PLZ</label>
-          <input type="text" id="plz" name="plz" required placeholder="12345" />
+          <input 
+            type="text" 
+            id="plz" 
+            name="plz" 
+            required 
+            placeholder="12345"
+            value="<?= htmlspecialchars($_POST['plz'] ?? '') ?>" 
+            pattern="\d{5}" 
+            title="Die PLZ muss genau 5 Ziffern haben."
+            oninput="checkPlz()" 
+            oninvalid="checkPlz()"
+          />
         </div>
 
         <div class="form-group">
           <label for="passwort">Passwort</label>
-          <input type="password" id="passwort" name="passwort" required placeholder="••••••" />
+          <input 
+            type="password" 
+            id="passwort" 
+            name="passwort" 
+            required 
+            placeholder="••••••"
+            oninput="checkPasswort()" 
+            oninvalid="checkPasswort()"
+          />
         </div>
 
         <div class="form-group">
           <label for="passwortWdh">Passwort wiederholen</label>
-          <input type="password" id="passwortWdh" name="passwortWdh" required placeholder="••••••" />
+          <input 
+            type="password" 
+            id="passwortWdh" 
+            name="passwortWdh" 
+            required 
+            placeholder="••••••"
+            oninput="checkPasswort()" 
+            oninvalid="checkPasswort()"
+          />
         </div>
 
         <button type="submit">Registrieren</button>
       </form>
       <p class="back-link"><a href="index.php">Zurück zur Startseite</a></p>
+
     <?php else: ?>
       <p class="success">Erfolgreich registriert!</p>
       <p class="back-link"><a href="index.php">Weiter zur Startseite</a></p>
@@ -159,7 +226,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </div>
 
-<!-- Ganz unten: JavaScript einbinden -->
 <script src="registrierung.js"></script>
 </body>
 </html>
