@@ -26,15 +26,17 @@ session_start();
       </div>
       <div class="nav-right">
         <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
-          <span class="user-name">
-            <?php 
-              echo isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "Unbekannt"; 
-              echo " ";
-              echo isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : "";
-            ?>
-          </span>
-          <span class="user-balance">Spielgeld: <?php echo number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.'); ?> €</span>
-          <span class="user-stocks">Aktien: <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
+          <div id="depotContent" class="depot-content">
+            <div class="depot-info">
+              <strong>Benutzer:</strong> <?php echo (isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "Unbekannt") . " " . (isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : ""); ?>
+            </div>
+            <div class="depot-info">
+              <strong>Spielgeld:</strong> <?php echo number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.'); ?> €
+            </div>
+            <div class="depot-info">
+              <strong>Aktien:</strong> <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+            </div>
+          </div>
         <?php endif; ?>
       </div>
     </div>

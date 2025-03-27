@@ -28,12 +28,12 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 <header>
-  <div class="header-container">
+  <div class="header-container orderbuch-header-container">
     <div class="nav-left">
       <a href="index.php">Zur Startseite</a>
       <a href="boersenspiel.php">Zum Börsenspiel</a>
     </div>
-    <div class="header-center">
+    <div class="header-center orderbuch-header-center">
       <h1>Orderbuch</h1>
     </div>
   </div>
