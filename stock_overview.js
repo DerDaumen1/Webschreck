@@ -1,6 +1,9 @@
 // stocks: Array aller Aktien aus PHP
 const stocks = window.phpStocks;
 
+// Neue globale Variable zur Speicherung aktueller Aktienwerte
+window.currentStockValues = {};
+
 // --- Carousel-Logik ---
 const cardsWrapper = document.getElementById("cardsWrapper");
 const totalCards = stocks.length;
@@ -78,6 +81,10 @@ function updateCurrentValues() {
                                 if (elem) {
                                     elem.textContent = currentValue.toFixed(2).replace('.', ',');
                                 }
+                                // Speichern des berechneten Werts
+                                window.currentStockValues[stock.id] = currentValue;
+                                // Aktualisiere das globale Portfolio
+                                updateGlobalPortfolio();
                             } else {
                                 console.error("Bestand-Fehler für Aktie " + stock.id + ":", holdingData.message);
                             }
@@ -91,10 +98,28 @@ function updateCurrentValues() {
     });
 }
 
+function updateGlobalPortfolio() {
+    let depotValue = 0;
+    for (let id in window.currentStockValues) {
+        depotValue += window.currentStockValues[id];
+    }
+    // Nutze das per PHP eingebundene aktuelle Spielgeld
+    let spielgeld = parseFloat(window.currentSpielgeld);
+    let depotGesamt = spielgeld + depotValue;
+    let gewinnVerlust = depotGesamt - window.startKapital;
+
+    // Aktualisierung der globalen Anzeige – jetzt ohne doppelte Labels
+    document.getElementById("aktienDepotDisplay").textContent = depotValue.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("depotGesamtDisplay").textContent = depotGesamt.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("gewinnVerlustDisplay").textContent = gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+}
+
 // Rufe die Funktion zusammen mit den anderen Initialisierungen auf
 document.addEventListener("DOMContentLoaded", () => {
     loadAllHistories();
     showPage(0);
     updateArrows();
     updateCurrentValues(); // Neuer Aufruf, um den aktuellen Wert zu berechnen und anzuzeigen
+
+    // Toggle event removed because depot info is now always visible in the header.
 });

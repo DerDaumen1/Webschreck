@@ -525,3 +525,8 @@ body.game-page #gameContainer .card {
     height: 200px;
   }
 }
+
+.depot-info {
+  margin: 5px;
+  padding: 5px;
+}

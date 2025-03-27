@@ -43,7 +43,6 @@ $stocks = $_SESSION['all_stocks'];
 </head>
 <body>
 
-<!-- Neuer Header-Stil -->
 <header>
   <div class="header-container">
     <div class="nav-left">
@@ -54,7 +53,24 @@ $stocks = $_SESSION['all_stocks'];
       <h1>Aktienübersicht (mit Carousel)</h1>
     </div>
     <div class="nav-right">
-    <span class="user-stocks">Aktien Gesamt: <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?></span>
+      <!-- Depot Informationen direkt im Header -->
+      <div id="depotContent" style="color:#fff; background-color:transparent; border:none; padding: 15px; border-radius: 8px; text-align: center;">
+        <div class="depot-info">
+          <strong>Aktien Gesamt:</strong> <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+        </div>
+        <div class="depot-info">
+          <strong>Spielgeld:</strong> <?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?> €
+        </div>
+        <div class="depot-info">
+          <strong>Aktienwert:</strong> <span id="aktienDepotDisplay">0,00 €</span>
+        </div>
+        <div class="depot-info">
+          <strong>Portfolio-Wert:</strong> <span id="depotGesamtDisplay">0,00 €</span>
+        </div>
+        <div class="depot-info">
+          <strong>Gewinn/Verlust:</strong> <span id="gewinnVerlustDisplay">0,00 €</span>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -102,6 +118,8 @@ $stocks = $_SESSION['all_stocks'];
 
 <!-- Stocks-Array als globales JS-Objekt -->
 <script>
+  window.currentSpielgeld = <?= json_encode($_SESSION['spielgeld'] ?? 50000); ?>;
+  window.startKapital = 50000;
   window.phpStocks = <?= json_encode($stocks) ?>;
 </script>
 
