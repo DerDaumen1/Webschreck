@@ -7,6 +7,7 @@ session_start();
   <meta charset="UTF-8">
   <title>Privatbank Mustermann</title>
   <link rel="stylesheet" href="assets/css/styles.css"> <!-- Pfad ist korrekt -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <header>
@@ -26,15 +27,39 @@ session_start();
       </div>
       <div class="nav-right">
         <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
-          <div id="depotContent" class="depot-content">
-            <div class="depot-info">
-              <strong>Benutzer:</strong> <?php echo (isset($_SESSION['vorname']) ? htmlspecialchars($_SESSION['vorname']) : "Unbekannt") . " " . (isset($_SESSION['nachname']) ? htmlspecialchars($_SESSION['nachname']) : ""); ?>
-            </div>
-            <div class="depot-info">
-              <strong>Spielgeld:</strong> <?php echo number_format($_SESSION['spielgeld'] ?? 0, 2, ',', '.'); ?> €
-            </div>
-            <div class="depot-info">
-              <strong>Aktien:</strong> <?php echo $_SESSION['anzahl_aktien'] ?? 0; ?>
+          <div id="portfolio-summary" class="portfolio-summary">
+            <h3>Ihr Portfolio <i class="fas fa-wallet"></i></h3>
+            <div class="portfolio-stats">
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Spielgeld:</span> 
+                <span class="stat-value"><?php echo number_format($_SESSION['spielgeld'], 2, ',', '.'); ?> €</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-chart-bar"></i>
+                <span class="stat-label">Aktienwert:</span>
+                <span class="stat-value" id="aktienDepotDisplay">0,00 €</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-piggy-bank"></i>
+                <span class="stat-label">Portfolio-Wert:</span>
+                <span class="stat-value" id="depotGesamtDisplay">0,00 €</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-balance-scale"></i>
+                <span class="stat-label">Gewinn/Verlust:</span>
+                <span class="stat-value" id="gewinnVerlustDisplay">0,00 €</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-boxes"></i>
+                <span class="stat-label">Aktienanzahl:</span>
+                <span class="stat-value" id="totalSharesDisplay">0</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-user"></i>
+                <span class="stat-label">Benutzer:</span>
+                <span class="stat-value"><?php echo htmlspecialchars($_SESSION['vorname'] . ' ' . $_SESSION['nachname']); ?></span>
+              </div>
             </div>
           </div>
         <?php endif; ?>
@@ -83,5 +108,79 @@ session_start();
      &copy; <?= date("Y") ?> Privatbank Mustermann | <a href="pages/impressum.php">Impressum</a>
     </div>
   </footer>
+
+  <!-- Script für Portfolio-Daten -->
+  <?php if(isset($_SESSION['angemeldet']) && $_SESSION['angemeldet']): ?>
+  <script>
+    // Globale Variablen für Portfolio-Berechnungen
+    window.currentStockValues = {};
+    window.currentStockShares = {};
+    window.currentSpielgeld = <?= json_encode($_SESSION['spielgeld'] ?? 50000); ?>;
+    window.startKapital = 50000;
+
+    // Aktualisiere Portfolio beim Laden der Seite
+    document.addEventListener('DOMContentLoaded', function() {
+      // Alle verfügbaren Aktien durchlaufen
+      for (let stockId = 1; stockId <= 10; stockId++) {
+        // Aktuellen Kurs laden
+        fetch("includes/api.php?action=get_history&stock_id=" + stockId)
+          .then(res => res.json())
+          .then(historyData => {
+            if (historyData.success && historyData.history.length > 0) {
+              // Neuesten Kurs verwenden
+              let latestPrice = parseFloat(historyData.history[0].kurs);
+              
+              // Bestand abfragen
+              fetch("includes/api.php?action=get_holding&stock_id=" + stockId)
+                .then(res => res.json())
+                .then(holdingData => {
+                  if (holdingData.success) {
+                    let currentValue = holdingData.bestand * latestPrice;
+                    window.currentStockValues[stockId] = currentValue;
+                    window.currentStockShares[stockId] = holdingData.bestand;
+                    
+                    // Portfolio-Übersicht aktualisieren
+                    updateGlobalPortfolio();
+                  }
+                })
+                .catch(err => console.error("Fehler beim Laden des Bestands:", err));
+            }
+          })
+          .catch(err => console.error("Fehler beim Laden der Kursdaten:", err));
+      }
+    });
+
+    function updateGlobalPortfolio() {
+      let depotValue = 0;
+      let totalShares = 0;
+      
+      for (let id in window.currentStockValues) {
+        depotValue += window.currentStockValues[id];
+      }
+      
+      for (let id in window.currentStockShares) {
+        totalShares += window.currentStockShares[id];
+      }
+      
+      let spielgeld = parseFloat(window.currentSpielgeld);
+      let depotGesamt = spielgeld + depotValue;
+      let gewinnVerlust = depotGesamt - window.startKapital;
+
+      // Anzeigen aktualisieren
+      document.getElementById("aktienDepotDisplay").textContent = depotValue.toFixed(2).replace('.', ',') + " €";
+      document.getElementById("depotGesamtDisplay").textContent = depotGesamt.toFixed(2).replace('.', ',') + " €";
+      document.getElementById("gewinnVerlustDisplay").textContent = gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+      document.getElementById("totalSharesDisplay").textContent = totalShares.toString();
+
+      // Gewinn/Verlust farblich markieren
+      const gvElem = document.getElementById("gewinnVerlustDisplay");
+      if (gewinnVerlust >= 0) {
+        gvElem.style.color = "#90ee90"; // Hellgrün für Gewinn
+      } else {
+        gvElem.style.color = "red"; // Rot für Verlust
+      }
+    }
+  </script>
+  <?php endif; ?>
 </body>
 </html>

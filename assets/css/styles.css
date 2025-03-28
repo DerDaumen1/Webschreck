@@ -861,29 +861,31 @@ body.game-page #gameContainer .card {
   min-height: 80px;
 }
 
-/* Remove or comment out this rule that was causing the issue */
-/*
-.portfolio-summary .stat-item:nth-last-child(2),
-.portfolio-summary .stat-item:nth-last-child(1) {
-  flex: 1 1 50%;
-}
-*/
-
 .portfolio-stats .stat-label {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.8rem;
   margin-bottom: 5px;
+  text-align: center;
+  width: 100%;
+  display: block;
 }
 
 .portfolio-stats .stat-value {
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
+  text-align: center;
+  width: 100%;
+  display: block;
 }
 
 .portfolio-summary .stat-item {
   flex: 1 1 25%;
   /* Vier Felder in einer Reihe: jeweils 25% */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Legende für Farbkodierung */
