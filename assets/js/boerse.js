@@ -233,7 +233,13 @@ function updateAllKurse() {
       }
     }
 
+    // Add new price to the END of the array (oldest at index 0, newest at last)
     stockHistory[stock.id].push(stock.briefkurs);
+
+    // Keep only the last 20 points to avoid performance issues
+    if (stockHistory[stock.id].length > 20) {
+      stockHistory[stock.id] = stockHistory[stock.id].slice(-20);
+    }
 
     let payload = { stock_id: stock.id, briefkurs: stock.briefkurs };
     fetch("../includes/api.php?action=update_stocks", { // Pfad korrigieren
@@ -259,7 +265,7 @@ function updateAllKurse() {
  * und schreibt sie in den Container #historyContainer.
  */
 function updateHistoryDisplay() {
-  fetch("../includes/api.php?action=get_history&stock_id=" + selectedStockId) // Pfad korrigieren
+  fetch("../includes/api.php?action=get_history&stock_id=" + selectedStockId)
     .then(res => res.json())
     .then(data => {
       if (!data.success) {
@@ -267,11 +273,93 @@ function updateHistoryDisplay() {
         return;
       }
       const container = document.getElementById("historyContainer");
-      let html = "<table><tr><th>Tick-Time</th><th>Kurs</th></tr>";
-      data.history.forEach(row => {
-        html += `<tr><td>${row.tick_time}</td><td>${parseFloat(row.kurs).toFixed(2)} €</td></tr>`;
+
+      // Debugging: Log the raw dates before sorting
+      console.log("Raw history data:", data.history.map(h => h.tick_time));
+
+      // Sort the history array by date (newest first)
+      let sortedHistory = [...data.history];
+      try {
+        sortedHistory.sort((a, b) => {
+          // Parse the German date format DD.MM.YYYY
+          const partsA = a.tick_time.split('.');
+          const partsB = b.tick_time.split('.');
+
+          if (partsA.length !== 3 || partsB.length !== 3) {
+            console.warn("Invalid date format:", a.tick_time, b.tick_time);
+            return 0;
+          }
+
+          // Create date strings in YYYY-MM-DD format (which JS can parse reliably)
+          const dateStringA = `${partsA[2]}-${partsA[1]}-${partsA[0]}`;
+          const dateStringB = `${partsB[2]}-${partsB[1]}-${partsB[0]}`;
+
+          // Create Date objects
+          const dateA = new Date(dateStringA);
+          const dateB = new Date(dateStringB);
+
+          // Debugging
+          console.log(`Comparing: ${a.tick_time} (${dateA}) vs ${b.tick_time} (${dateB}) = ${dateB - dateA}`);
+
+          // Newest first: descending order
+          return dateB - dateA;
+        });
+
+        // Debugging: Log the sorted dates
+        console.log("Sorted history data:", sortedHistory.map(h => h.tick_time));
+      } catch (e) {
+        console.error("Error sorting dates:", e);
+        // Use original unsorted data if sorting fails
+      }
+
+      let html = `<table class="enhanced-history-table">
+                    <thead>
+                      <tr>
+                        <th>Datum</th>
+                        <th>Kurs</th>
+                        <th>Änderung</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+      // ...existing code to build html...
+      sortedHistory.forEach((row, index) => {
+        const currentKurs = parseFloat(row.kurs);
+        let changeClass = "";
+        let changeIcon = "";
+        let changePercent = "";
+
+        if (index < sortedHistory.length - 1) {
+          const olderKurs = parseFloat(sortedHistory[index + 1].kurs);
+          const diff = currentKurs - olderKurs;
+          const percentChange = (diff / olderKurs) * 100;
+
+          if (diff > 0) {
+            changeClass = "trend-up";
+            changeIcon = '<i class="fas fa-arrow-up"></i>';
+            changePercent = `+${percentChange.toFixed(2)}%`;
+          } else if (diff < 0) {
+            changeClass = "trend-down";
+            changeIcon = '<i class="fas fa-arrow-down"></i>';
+            changePercent = `${percentChange.toFixed(2)}%`;
+          } else {
+            changeClass = "trend-neutral";
+            changeIcon = '<i class="fas fa-minus"></i>';
+            changePercent = "0.00%";
+          }
+        } else {
+          changeClass = "trend-neutral";
+          changeIcon = '<i class="fas fa-minus"></i>';
+          changePercent = "--";
+        }
+
+        html += `<tr class="${changeClass}">
+                   <td>${row.tick_time}</td>
+                   <td>${currentKurs.toFixed(2)} €</td>
+                   <td>${changeIcon} ${changePercent}</td>
+                 </tr>`;
       });
-      html += "</table>";
+
+      html += `</tbody></table>`;
       container.innerHTML = html;
     })
     .catch(err => console.error("Fehler beim AJAX:", err));
@@ -290,24 +378,88 @@ function drawChart() {
   let w = chartCanvas.width;
   let h = chartCanvas.height;
   let padding = 20;
+  let leftPadding = 60; // Erhöht von 40 auf 60 für mehr Platz bei dreistelligen Zahlen
 
-  let minVal = Math.min(...points);
-  let maxVal = Math.max(...points);
+  // Make a copy to avoid modifying the original array
+  const chronologicalPoints = [...points]; // No .reverse() call
+
+  let minVal = Math.min(...chronologicalPoints);
+  let maxVal = Math.max(...chronologicalPoints);
   if (minVal === maxVal) {
     minVal -= 1;
     maxVal += 1;
   }
 
-  let scaleX = (w - 2 * padding) / (points.length - 1);
+  // Adjust scaleX to use leftPadding on the left side
+  let scaleX = (w - leftPadding - padding) / (chronologicalPoints.length - 1);
   let scaleY = (h - 2 * padding) / (maxVal - minVal);
 
+  // Hintergrund-Raster zeichnen
   ctx.beginPath();
-  ctx.strokeStyle = "#3f51b5";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#e0e0e0";
+  ctx.lineWidth = 0.5;
 
-  for (let i = 0; i < points.length; i++) {
-    let x = padding + i * scaleX;
-    let y = padding + (maxVal - points[i]) * scaleY;
+  // Horizontale Linien
+  for (let i = 0; i <= 5; i++) {
+    let y = padding + (i * (h - 2 * padding)) / 5;
+    ctx.moveTo(leftPadding, y);
+    ctx.lineTo(w - padding, y);
+  }
+
+  // Vertikale Linien
+  for (let i = 0; i <= 5; i++) {
+    let x = leftPadding + (i * (w - leftPadding - padding)) / 5;
+    ctx.moveTo(x, padding);
+    ctx.lineTo(x, h - padding);
+  }
+  ctx.stroke();
+
+  // Farbverlauf unter der Linie
+  const gradient = ctx.createLinearGradient(0, padding, 0, h - padding);
+  if (currentPhase === "Bullenmarkt") {
+    gradient.addColorStop(0, 'rgba(76, 175, 80, 0.2)');
+    gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+  } else if (currentPhase === "Bärenmarkt") {
+    gradient.addColorStop(0, 'rgba(244, 67, 54, 0.2)');
+    gradient.addColorStop(1, 'rgba(244, 67, 54, 0)');
+  } else {
+    gradient.addColorStop(0, 'rgba(33, 150, 243, 0.2)');
+    gradient.addColorStop(1, 'rgba(33, 150, 243, 0)');
+  }
+
+  // Fläche unter der Linie - adjusted to use leftPadding
+  ctx.beginPath();
+  ctx.moveTo(leftPadding, padding + (maxVal - chronologicalPoints[0]) * scaleY);
+
+  for (let i = 0; i < chronologicalPoints.length; i++) {
+    let x = leftPadding + i * scaleX;
+    let y = padding + (maxVal - chronologicalPoints[i]) * scaleY;
+    ctx.lineTo(x, y);
+  }
+
+  ctx.lineTo(leftPadding + (chronologicalPoints.length - 1) * scaleX, h - padding);
+  ctx.lineTo(leftPadding, h - padding);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Die Hauptlinie zeichnen - adjusted to use leftPadding
+  ctx.beginPath();
+
+  if (currentPhase === "Bullenmarkt") {
+    ctx.strokeStyle = "#4caf50";  // Grün für Bullenmarkt
+  } else if (currentPhase === "Bärenmarkt") {
+    ctx.strokeStyle = "#f44336";  // Rot für Bärenmarkt
+  } else {
+    ctx.strokeStyle = "#2196f3";  // Blau für neutralen Markt
+  }
+
+  ctx.lineWidth = 2;
+  ctx.lineJoin = "round";
+
+  for (let i = 0; i < chronologicalPoints.length; i++) {
+    let x = leftPadding + i * scaleX;
+    let y = padding + (maxVal - chronologicalPoints[i]) * scaleY;
     if (i === 0) {
       ctx.moveTo(x, y);
     } else {
@@ -315,27 +467,54 @@ function drawChart() {
     }
   }
   ctx.stroke();
+
+  // Punkte auf der Linie zeichnen - adjusted to use leftPadding
+  for (let i = 0; i < chronologicalPoints.length; i++) {
+    let x = leftPadding + i * scaleX;
+    let y = padding + (maxVal - chronologicalPoints[i]) * scaleY;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.strokeStyle = ctx.strokeStyle;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Y-Achsen-Beschriftung - deutlich weiter nach links verschoben
+  ctx.fillStyle = "#666";
+  ctx.font = "11px Arial"; // Leicht vergrößert von 10px auf 11px
+  ctx.textAlign = "right";
+
+  for (let i = 0; i <= 5; i++) {
+    let value = minVal + (maxVal - minVal) * (5 - i) / 5;
+    let y = padding + (i * (h - 2 * padding)) / 5;
+    // Move label much further left with more space
+    ctx.fillText(value.toFixed(2) + " €", leftPadding - 12, y + 3);
+  }
 }
 
 /**
- * Aktualisiert Textanzeigen (Briefkurs, Geldkurs, Gewinn/Verlust, Marktphase)
+ * Verbesserte Funktion für die Aktualisierung der Anzeigeelemente mit Animationen
  */
 function updateAnzeigen() {
   const stock = stocksArray.find(s => s.id === selectedStockId);
   if (!stock) return;
 
-  document.getElementById("briefkursDisplay").textContent =
-    "Briefkurs: " + stock.briefkurs.toFixed(2) + " €";
-  document.getElementById("geldkursDisplay").textContent =
-    "Geldkurs: " + stock.geldkurs.toFixed(2) + " €";
+  // Briefkurs und Geldkurs mit Animation aktualisieren
+  animateValue("briefkursDisplay", "Briefkurs: ", stock.briefkurs.toFixed(2) + " €", "€");
+  animateValue("geldkursDisplay", "Geldkurs: ", stock.geldkurs.toFixed(2) + " €", "€");
 
-  // Use holdings from our tracking; fallback to DOM if necessary.
+  // Bestandswert berechnen
   let currentHolding = holdings[selectedStockId] || parseInt(document.getElementById("aktienBestandDisplay").textContent) || 0;
   let costBasis = averageCost[selectedStockId] || 100;
   let profit = (stock.briefkurs - costBasis) * currentHolding;
 
+  // Gewinn/Verlust aktualisieren mit Animation
   const profitEl = document.getElementById("profitDisplay");
-  profitEl.textContent = profit.toFixed(2).replace('.', ',');
+  animateValue(profitEl, "", profit.toFixed(2).replace('.', ','), null);
+
   if (profit >= 0) {
     profitEl.classList.add("profit-positive");
     profitEl.classList.remove("profit-negative");
@@ -344,17 +523,241 @@ function updateAnzeigen() {
     profitEl.classList.remove("profit-positive");
   }
 
+  // Verbesserte Marktphasen-Anzeige mit visuellen Indikatoren
   const mp = document.getElementById("marketPhaseDisplay");
+  mp.className = "market-phase-indicator";
+
   if (currentPhase === "Bullenmarkt") {
-    mp.textContent = "Bullenmarkt (Chance auf Steigerung: 75%)";
-    mp.style.color = "green";
+    mp.textContent = "BULLENMARKT (Steigerungs-Chance: 75%)";
+    mp.classList.add("bull-market");
+    document.getElementById("chartCanvas").classList.add("bull-chart");
+    document.getElementById("chartCanvas").classList.remove("bear-chart");
+
+    // Update alle Aktienbuttons
+    updateStockButtons();
   } else if (currentPhase === "Bärenmarkt") {
-    mp.textContent = "Bärenmarkt (Chance auf Fallen: 75%)";
-    mp.style.color = "red";
+    mp.textContent = "BÄRENMARKT (Fallen-Chance: 75%)";
+    mp.classList.add("bear-market");
+    document.getElementById("chartCanvas").classList.add("bear-chart");
+    document.getElementById("chartCanvas").classList.remove("bull-chart");
+
+    // Update alle Aktienbuttons
+    updateStockButtons();
   } else {
-    mp.textContent = "";
+    mp.textContent = "NEUTRALER MARKT";
+    mp.classList.add("neutral-market");
+    document.getElementById("chartCanvas").classList.remove("bull-chart", "bear-chart");
+
+    // Update alle Aktienbuttons
+    updateStockButtons();
   }
 }
+
+/**
+ * Aktualisiert die Trendanzeige bei allen Aktien-Buttons
+ */
+function updateStockButtons() {
+  stocksArray.forEach(stock => {
+    const button = document.querySelector(`.stock-button[data-stock-id="${stock.id}"]`);
+    if (!button) return;
+
+    const trendDiv = button.querySelector('.stock-trend');
+    if (!trendDiv) return;
+
+    // Letzten zwei Kurswerte aus der History holen
+    const history = stockHistory[stock.id];
+    if (history && history.length >= 2) {
+      const currentPrice = history[history.length - 1];
+      const previousPrice = history[history.length - 2];
+
+      trendDiv.classList.remove('up', 'down');
+      if (currentPrice > previousPrice) {
+        trendDiv.classList.add('up');
+      } else if (currentPrice < previousPrice) {
+        trendDiv.classList.add('down');
+      }
+    }
+  });
+}
+
+/**
+ * Animiert die Wertänderung eines Elements
+ */
+function animateValue(element, prefix, newValue, suffix) {
+  const el = typeof element === 'string' ? document.getElementById(element) : element;
+  if (!el) return;
+
+  // Verbesserte Extraktion des aktuellen Wertes
+  // Extrahiert die Zahl unabhängig von ihrer Größe (auch über 100€)
+  let current = el.textContent;
+
+  // Animationseffekt hinzufügen
+  el.classList.add('value-changing');
+
+  // Nach kurzer Verzögerung neuen Wert setzen
+  setTimeout(() => {
+    el.textContent = prefix + newValue + (suffix ? ` ${suffix}` : '');
+    el.classList.remove('value-changing');
+  }, 200);
+}
+
+/**
+ * Verbesserte History-Anzeige mit farblichen Hervorhebungen und korrekter Datumssortierung
+ */
+function updateHistoryDisplay() {
+  fetch("../includes/api.php?action=get_history&stock_id=" + selectedStockId)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        console.error("Fehler beim Laden der History:", data.message);
+        return;
+      }
+
+      const container = document.getElementById("historyContainer");
+
+      // Sort the history array by date (newest first)
+      let sortedHistory = [...data.history];
+      try {
+        sortedHistory.sort((a, b) => {
+          let [dayA, monthA, yearA] = a.tick_time.split('.').map(Number);
+          let [dayB, monthB, yearB] = b.tick_time.split('.').map(Number);
+          // Create Date objects (adjust month by -1 since JS months are 0-indexed)
+          let dateA = new Date(yearA, monthA - 1, dayA);
+          let dateB = new Date(yearB, monthB - 1, dayB);
+          // Newest first: descending
+          return dateB - dateA;
+        });
+      } catch (e) {
+        console.error("Error sorting dates:", e);
+        // Use original unsorted data if sorting fails
+      }
+
+      let html = `<table class="enhanced-history-table">
+                    <thead>
+                      <tr>
+                        <th>Datum</th>
+                        <th>Kurs</th>
+                        <th>Änderung</th>
+                      </tr>
+                    </thead>
+                    <tbody>`;
+
+      // Now process the sorted history for display
+      sortedHistory.forEach((row, index) => {
+        const currentKurs = parseFloat(row.kurs);
+        let changeClass = "";
+        let changeIcon = "";
+        let changePercent = "";
+
+        // Compare with next entry only if it exists
+        // Since data is sorted by date, index+1 is an older entry
+        if (index < sortedHistory.length - 1) {
+          const olderKurs = parseFloat(sortedHistory[index + 1].kurs);
+          const diff = currentKurs - olderKurs;
+          const percentChange = (diff / olderKurs) * 100;
+
+          if (diff > 0) {
+            changeClass = "trend-up";
+            changeIcon = '<i class="fas fa-arrow-up"></i>';
+            changePercent = `+${percentChange.toFixed(2)}%`;
+          } else if (diff < 0) {
+            changeClass = "trend-down";
+            changeIcon = '<i class="fas fa-arrow-down"></i>';
+            changePercent = `${percentChange.toFixed(2)}%`;
+          } else {
+            changeClass = "trend-neutral";
+            changeIcon = '<i class="fas fa-minus"></i>';
+            changePercent = "0.00%";
+          }
+        } else {
+          // For the oldest entry with no comparison
+          changeClass = "trend-neutral";
+          changeIcon = '<i class="fas fa-minus"></i>';
+          changePercent = "--";
+        }
+
+        html += `<tr class="${changeClass}">
+                  <td>${row.tick_time}</td>
+                  <td>${currentKurs.toFixed(2)} €</td>
+                  <td>${changeIcon} ${changePercent}</td>
+                </tr>`;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    })
+    .catch(err => console.error("Fehler beim AJAX:", err));
+}
+
+/**
+ * Fügt ein Mini-Portfolio-Widget hinzu
+ */
+function addPortfolioWidget() {
+  const infoBox = document.querySelector('.info-list');
+  if (!infoBox) return;
+
+  const portfolioWidget = document.createElement('div');
+  portfolioWidget.className = 'portfolio-widget';
+  portfolioWidget.innerHTML = `
+    <h4>Ihr Mini-Portfolio</h4>
+    <div class="portfolio-bars"></div>
+  `;
+
+  infoBox.after(portfolioWidget);
+  updatePortfolioWidget();
+}
+
+/**
+ * Aktualisiert das Portfolio-Widget
+ */
+function updatePortfolioWidget() {
+  const container = document.querySelector('.portfolio-bars');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  // Top 5 Aktien nach Bestand ermitteln
+  const topStocks = Object.keys(holdings)
+    .filter(id => holdings[id] > 0)
+    .sort((a, b) => holdings[b] - holdings[a])
+    .slice(0, 5);
+
+  if (topStocks.length === 0) {
+    container.innerHTML = '<p class="no-stocks">Noch keine Aktien im Portfolio</p>';
+    return;
+  }
+
+  topStocks.forEach(stockId => {
+    const stock = stocksArray.find(s => s.id === parseInt(stockId));
+    if (!stock) return;
+
+    const quantity = holdings[stockId];
+    const value = quantity * stock.briefkurs;
+
+    const bar = document.createElement('div');
+    bar.className = 'portfolio-bar';
+    bar.innerHTML = `
+      <div class="bar-label">${stock.name}</div>
+      <div class="bar-container">
+        <div class="bar-fill" style="width: ${Math.min(quantity, 100)}%;"></div>
+      </div>
+      <div class="bar-value">${quantity} St. (${value.toFixed(2)} €)</div>
+    `;
+
+    container.appendChild(bar);
+  });
+}
+
+// Event-Listener am Ende hinzufügen
+document.addEventListener("DOMContentLoaded", () => {
+  // Bestehende Initialisierungen
+  updateStockHolding();
+
+  // Neue Initialisierungen
+  if (document.querySelector('.info-list')) {
+    addPortfolioWidget();
+  }
+});
 
 /**
  * Aktualisiert den Countdown-Timer

@@ -92,18 +92,47 @@ function loadAllHistories() {
                 const container = document.getElementById("historyContainer-" + stockId);
                 if (!container) return;
 
+                // Sort the history array by date (newest first)
+                let sortedHistory = [...data.history];
+                try {
+                    sortedHistory.sort((a, b) => {
+                        // Parse the German date format DD.MM.YYYY
+                        const partsA = a.tick_time.split('.');
+                        const partsB = b.tick_time.split('.');
+
+                        if (partsA.length !== 3 || partsB.length !== 3) {
+                            console.warn("Invalid date format:", a.tick_time, b.tick_time);
+                            return 0;
+                        }
+
+                        // Create date strings in YYYY-MM-DD format (which JS can parse reliably)
+                        const dateStringA = `${partsA[2]}-${partsA[1]}-${partsA[0]}`;
+                        const dateStringB = `${partsB[2]}-${partsB[1]}-${partsB[0]}`;
+
+                        // Create Date objects
+                        const dateA = new Date(dateStringA);
+                        const dateB = new Date(dateStringB);
+
+                        // Newest first: descending order
+                        return dateB - dateA;
+                    });
+                } catch (e) {
+                    console.error("Error sorting dates:", e);
+                    // Use original unsorted data if sorting fails
+                }
+
                 // HTML mit verbesserten visuellen Indikatoren erstellen
                 let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th><th>Trend</th></tr></thead><tbody>";
 
-                // Die history kommt vom Server mit neuestem Datum zuerst (ORDER BY tick_time DESC)
-                data.history.forEach((row, i) => {
+                // Use the sorted data with newest first
+                sortedHistory.forEach((row, i) => {
                     let price = parseFloat(row.kurs);
                     let trendClass = "";
                     let trendIcon = "";
 
                     // Vergleich mit dem neueren Eintrag (i-1) statt mit dem älteren (i+1)
                     if (i > 0) {
-                        let newerPrice = parseFloat(data.history[i - 1].kurs);
+                        let newerPrice = parseFloat(sortedHistory[i - 1].kurs);
                         if (price > newerPrice) {
                             trendClass = "trend-down"; // Kurs ist gefallen (neuerer Kurs ist niedriger)
                             trendIcon = '<i class="fas fa-arrow-down" style="color:red;"></i>';
@@ -128,7 +157,7 @@ function loadAllHistories() {
 
                 // Wenn Mini-Charts verwendet werden, aktualisieren wir diese auch
                 if (typeof updateMiniChart === 'function') {
-                    updateMiniChart(stockId, data.history);
+                    updateMiniChart(stockId, sortedHistory);
                 }
             })
             .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId, err));

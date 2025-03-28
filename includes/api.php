@@ -57,6 +57,7 @@ switch ($action) {
             echo json_encode(["success" => false, "message" => "Ungültige stock_id"]);
             exit;
         }
+        // Important: Use ORDER BY tick_time DESC to ensure newest entries come first from the database
         $stmt = $pdo->prepare("
             SELECT kurs, DATE_FORMAT(tick_time, '%d.%m.%Y') AS tick_time
             FROM stock_history

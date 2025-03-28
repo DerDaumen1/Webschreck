@@ -45,6 +45,16 @@ if (!isset($_SESSION['stock_history'])) {
     .meldung {
       margin-top: 1rem; /* Abstand zwischen den Info-Zeilen und der Meldung */
     }
+    
+    /* Hide "no stocks" message */
+    .no-stocks {
+      display: none !important;
+    }
+    
+    /* Optional - to make sure the portfolio widget still has some minimum height */
+    .portfolio-widget {
+      min-height: 50px;
+    }
   </style>
 </head>
 <body>
@@ -72,8 +82,19 @@ if (!isset($_SESSION['stock_history'])) {
   <div class="cards-container three-columns">
     
     <!-- Chart-Bereich -->
-    <div class="card">
-      <canvas id="chartCanvas" width="700" height="300"></canvas>
+    <div class="card dashboard-card">
+      <div class="dashboard-card-header">
+        <h3>Kursverlauf</h3>
+      </div>
+      <div class="dashboard-card-content">
+        <div class="chart-container">
+          <canvas id="chartCanvas" width="700" height="300"></canvas>
+          <div class="chart-overlay"></div>
+        </div>
+        <div class="game-progress">
+          <div class="progress-bar" id="gameProgressBar"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Info-Box + Meldung darunter -->
@@ -82,7 +103,7 @@ if (!isset($_SESSION['stock_history'])) {
         <li>
           <strong>Aktuelles Spielgeld:</strong>
           <span id="spielgeldDisplay">
-            <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, '.', ''); ?>
+            <?php echo number_format($_SESSION['spielgeld'] ?? 50000, 2, ',', '.'); ?>
           </span> €
         </li>
         <li>
@@ -95,10 +116,7 @@ if (!isset($_SESSION['stock_history'])) {
         </li>
       </ul>
 
-      <!-- Meldung jetzt UNTERHALB der Info-Zeilen -->
-      
-
-      <div id="marketPhaseDisplay"></div>
+      <div id="marketPhaseDisplay" class="market-phase-indicator"></div>
       <div id="timerDisplay"></div>
 
       <div class="meldung" id="meldungDisplay"></div>
@@ -115,44 +133,54 @@ if (!isset($_SESSION['stock_history'])) {
         <h3>Aktie wählen:</h3>
         <div class="stock-grid">
           <button class="stock-button active" data-stock-id="1" onclick="selectStock(this, 1)">
-            <div class="stock-icon">M</div>
+            <div class="stock-icon trend-icon">M</div>
             <div class="stock-name">Mustermann AG</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="2" onclick="selectStock(this, 2)">
-            <div class="stock-icon">B</div>
+            <div class="stock-icon trend-icon">B</div>
             <div class="stock-name">Beispiel AG</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="3" onclick="selectStock(this, 3)">
-            <div class="stock-icon">T</div>
+            <div class="stock-icon trend-icon">T</div>
             <div class="stock-name">Test Inc.</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="4" onclick="selectStock(this, 4)">
-            <div class="stock-icon">M</div>
+            <div class="stock-icon trend-icon">M</div>
             <div class="stock-name">MegaCorp</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="5" onclick="selectStock(this, 5)">
-            <div class="stock-icon">F</div>
+            <div class="stock-icon trend-icon">F</div>
             <div class="stock-name">Future Ltd.</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="6" onclick="selectStock(this, 6)">
-            <div class="stock-icon">S</div>
+            <div class="stock-icon trend-icon">S</div>
             <div class="stock-name">Sample GmbH</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="7" onclick="selectStock(this, 7)">
-            <div class="stock-icon">H</div>
+            <div class="stock-icon trend-icon">H</div>
             <div class="stock-name">Hallo AG</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="8" onclick="selectStock(this, 8)">
-            <div class="stock-icon">W</div>
+            <div class="stock-icon trend-icon">W</div>
             <div class="stock-name">World Ind.</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="9" onclick="selectStock(this, 9)">
-            <div class="stock-icon">B</div>
+            <div class="stock-icon trend-icon">B</div>
             <div class="stock-name">Börsenspiel SE</div>
+            <div class="stock-trend"></div>
           </button>
           <button class="stock-button" data-stock-id="10" onclick="selectStock(this, 10)">
-            <div class="stock-icon">F</div>
+            <div class="stock-icon trend-icon">F</div>
             <div class="stock-name">Fantasy PLC</div>
+            <div class="stock-trend"></div>
           </button>
         </div>
       </div>
@@ -185,7 +213,17 @@ if (!isset($_SESSION['stock_history'])) {
         </div>
       </div>
     </div>
-
+  </div>
+  
+  <!-- Tipps-Container für Börsenwissen -->
+  <div class="tips-container">
+    <div class="tip-box">
+      <h3>Börsenwissen</h3>
+      <div id="stockTip" class="tip-content">
+        <p>Wussten Sie? In einem Bullenmarkt steigen die Kurse tendenziell an, während sie in einem Bärenmarkt fallen.</p>
+      </div>
+      <button onclick="showNextTip()" class="tip-button">Nächster Tipp</button>
+    </div>
   </div>
 </main>
 
@@ -195,6 +233,37 @@ if (!isset($_SESSION['stock_history'])) {
     <a href="impressum.php">Impressum</a>
   </div>
 </footer>
+
+<script>
+// Tipps-Array
+const stockTips = [
+  "Kaufen Sie niedrig und verkaufen Sie hoch ist die grundlegende Strategie beim Aktienhandel.",
+  "Diversifizierung Ihres Portfolios kann Ihr Risiko reduzieren.",
+  "Ein Bullenmarkt bezeichnet einen Markt mit steigenden Kursen, ein Bärenmarkt einen mit fallenden Kursen.",
+  "Während einer Baisse (fallendem Markt) ist es oft besser zu warten als zu verkaufen.",
+  "Behalten Sie immer etwas Bargeld für opportunistische Käufe in Marktabschwüngen.",
+  "Emotionale Entscheidungen führen oft zu schlechten Investmentergebnissen.",
+  "Der durchschnittliche jährliche Ertrag des S&P 500 liegt historisch bei etwa 10%.",
+  "Provision und Steuern können Ihre Gewinne erheblich schmälern.",
+  "Langfristiges Investieren ist oft erfolgreicher als kurzfristiges Trading."
+];
+
+let currentTipIndex = 0;
+
+function showNextTip() {
+  currentTipIndex = (currentTipIndex + 1) % stockTips.length;
+  const tipElement = document.getElementById('stockTip');
+  
+  // Fade-Out-Effekt
+  tipElement.style.opacity = 0;
+  
+  setTimeout(() => {
+    tipElement.innerHTML = `<p>${stockTips[currentTipIndex]}</p>`;
+    // Fade-In-Effekt
+    tipElement.style.opacity = 1;
+  }, 300);
+}
+</script>
 
 <script src="../assets/js/boerse.js"></script>
 </body>
