@@ -68,7 +68,7 @@ if (!isset($_SESSION['stock_history'])) {
       <a href="../pages/logout.php">Logout</a>
     </div>
     <div class="header-center">
-      <h1>Börsenspiel (AJAX-Version)</h1>
+      <h1>Börsenspiel</h1>
       <p>Herzlich willkommen im Börsenspiel – Erleben Sie spielerisch die Welt des Aktienhandels!</p>
     </div>
     <div class="nav-right">
