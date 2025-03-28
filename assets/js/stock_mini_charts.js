@@ -150,4 +150,77 @@ function updateMiniChart(stockId, newData) {
 }
 
 // Event-Listener hinzufügen, um Charts zu initialisieren, sobald die Seite geladen ist
-document.addEventListener('DOMContentLoaded', initMiniCharts);
+document.addEventListener('DOMContentLoaded', function () {
+    initMiniCharts();
+
+    // Überschreibe die loadAllHistories-Funktion aus stock_overview.js
+    // um auch für den neuesten Eintrag einen Trend anzuzeigen
+    if (typeof window.loadAllHistories === 'function') {
+        const originalLoadAllHistories = window.loadAllHistories;
+
+        window.loadAllHistories = function () {
+            const stocks = window.phpStocks;
+            if (!stocks) return;
+
+            stocks.forEach(stock => {
+                const stockId = stock.id;
+                fetch("../includes/api.php?action=get_history&stock_id=" + stockId)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error("Fehler beim Laden der History für Aktie " + stockId, data.message);
+                            return;
+                        }
+                        const container = document.getElementById("historyContainer-" + stockId);
+                        if (!container) return;
+
+                        let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th><th>Trend</th></tr></thead><tbody>";
+
+                        data.history.forEach((row, i) => {
+                            let price = parseFloat(row.kurs);
+                            let trendClass = "";
+                            let trendIcon = "";
+
+                            // Verbesserte Trend-Logik: Vergleich mit dem nächsten Eintrag (älter)
+                            if (i < data.history.length - 1) {
+                                // Vergleiche mit dem älteren Eintrag
+                                let olderPrice = parseFloat(data.history[i + 1].kurs);
+                                if (price > olderPrice) {
+                                    trendClass = "trend-up"; // Kurs ist gestiegen
+                                    trendIcon = '<i class="fas fa-arrow-up" style="color:green;"></i>';
+                                } else if (price < olderPrice) {
+                                    trendClass = "trend-down"; // Kurs ist gefallen
+                                    trendIcon = '<i class="fas fa-arrow-down" style="color:red;"></i>';
+                                } else {
+                                    trendClass = "trend-neutral";
+                                    trendIcon = '<i class="fas fa-minus" style="color:gray;"></i>';
+                                }
+                            } else {
+                                // Für den ältesten Eintrag (wenn kein noch älterer vorhanden)
+                                trendClass = "trend-neutral";
+                                trendIcon = '<i class="fas fa-minus" style="color:gray;"></i>';
+                            }
+
+                            html += `<tr class="${trendClass}">
+                                <td>${row.tick_time}</td>
+                                <td>${price.toFixed(2)} €</td>
+                                <td>${trendIcon}</td>
+                            </tr>`;
+                        });
+
+                        html += "</tbody></table>";
+                        container.innerHTML = html;
+
+                        // Wenn Mini-Charts verwendet werden, aktualisieren wir diese auch
+                        if (typeof updateMiniChart === 'function') {
+                            updateMiniChart(stockId, data.history);
+                        }
+                    })
+                    .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId, err));
+            });
+        };
+
+        // Initial ausführen
+        window.loadAllHistories();
+    }
+});
