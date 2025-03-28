@@ -75,6 +75,16 @@ $stocks = $_SESSION['all_stocks'];
             <span class="stat-label">Gewinn/Verlust:</span>
             <span class="stat-value" id="gewinnVerlustDisplay">0,00 €</span>
           </div>
+          <div class="stat-item">
+            <i class="fas fa-boxes"></i>
+            <span class="stat-label">Aktienanzahl:</span>
+            <span class="stat-value" id="totalSharesDisplay">0</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-user"></i>
+            <span class="stat-label">Benutzer:</span>
+            <span class="stat-value" id="userNameDisplay"><?php echo htmlspecialchars($_SESSION['vorname'] . ' ' . $_SESSION['nachname']); ?></span>
+          </div>
         </div>
       </div>
     </div>

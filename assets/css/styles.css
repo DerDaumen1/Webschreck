@@ -822,6 +822,11 @@ body.game-page #gameContainer .card {
   padding: 15px;
   margin-top: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
 }
 
 .portfolio-summary h3 {
@@ -831,26 +836,38 @@ body.game-page #gameContainer .card {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.portfolio-summary h3 i {
-  margin-left: 8px;
+  width: 100%;
 }
 
 .portfolio-stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 0 15px;
+  box-sizing: border-box;
 }
 
 .portfolio-stats .stat-item {
-  padding: 8px;
+  padding: 10px;
   border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 80px;
 }
+
+/* Remove or comment out this rule that was causing the issue */
+/*
+.portfolio-summary .stat-item:nth-last-child(2),
+.portfolio-summary .stat-item:nth-last-child(1) {
+  flex: 1 1 50%;
+}
+*/
 
 .portfolio-stats .stat-label {
   color: rgba(255, 255, 255, 0.8);
@@ -862,6 +879,11 @@ body.game-page #gameContainer .card {
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
+}
+
+.portfolio-summary .stat-item {
+  flex: 1 1 25%;
+  /* Vier Felder in einer Reihe: jeweils 25% */
 }
 
 /* Legende für Farbkodierung */
@@ -906,7 +928,8 @@ body.game-page #gameContainer .card {
 /* Responsive Designs für Aktienübersicht */
 @media screen and (max-width: 1024px) {
   .portfolio-stats {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for tablets */
   }
 
   .carousel-container {
@@ -923,6 +946,7 @@ body.game-page #gameContainer .card {
 @media screen and (max-width: 767px) {
   .portfolio-stats {
     grid-template-columns: 1fr;
+    /* 1 column for mobile */
   }
 
   .carousel-btn {

@@ -3,6 +3,7 @@ const stocks = window.phpStocks;
 
 // Neue globale Variable zur Speicherung aktueller Aktienwerte
 window.currentStockValues = {};
+window.currentStockShares = {};  // Neu hinzugefügt
 
 // --- Carousel-Logik ---
 const cardsWrapper = document.getElementById("cardsWrapper");
@@ -185,6 +186,7 @@ function updateCurrentValues() {
                                 }
                                 // Speichern des berechneten Werts
                                 window.currentStockValues[stock.id] = currentValue;
+                                window.currentStockShares[stock.id] = holdingData.bestand;  // Neu
                                 // Aktualisiere das globale Portfolio
                                 updateGlobalPortfolio();
                             } else {
@@ -202,8 +204,12 @@ function updateCurrentValues() {
 
 function updateGlobalPortfolio() {
     let depotValue = 0;
+    let totalShares = 0;
     for (let id in window.currentStockValues) {
         depotValue += window.currentStockValues[id];
+    }
+    for (let id in window.currentStockShares) {
+        totalShares += window.currentStockShares[id];
     }
     // Nutze das per PHP eingebundene aktuelle Spielgeld
     let spielgeld = parseFloat(window.currentSpielgeld);
@@ -214,6 +220,7 @@ function updateGlobalPortfolio() {
     document.getElementById("aktienDepotDisplay").textContent = depotValue.toFixed(2).replace('.', ',') + " €";
     document.getElementById("depotGesamtDisplay").textContent = depotGesamt.toFixed(2).replace('.', ',') + " €";
     document.getElementById("gewinnVerlustDisplay").textContent = gewinnVerlust.toFixed(2).replace('.', ',') + " €";
+    document.getElementById("totalSharesDisplay").textContent = totalShares.toString();
 
     // Setze die Textfarbe je nach Gewinn/Verlust
     const gvElem = document.getElementById("gewinnVerlustDisplay");
