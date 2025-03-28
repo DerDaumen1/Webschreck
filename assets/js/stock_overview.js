@@ -7,15 +7,42 @@ window.currentStockValues = {};
 // --- Carousel-Logik ---
 const cardsWrapper = document.getElementById("cardsWrapper");
 const totalCards = stocks.length;
-const cardsPerPage = 5;
-const totalPages = Math.ceil(totalCards / cardsPerPage);
+let cardsPerPage = getCardsPerPage(); // Dynamisch basierend auf Bildschirmbreite
+let totalPages = Math.ceil(totalCards / cardsPerPage);
 let currentIndex = 0;
 
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
+// Funktion zur Bestimmung der Anzahl von Karten pro Seite basierend auf Bildschirmbreite
+function getCardsPerPage() {
+    const width = window.innerWidth;
+    if (width <= 767) return 1;     // Alle Handys - jetzt nur 1 Karte
+    if (width <= 1024) return 3;    // Tablets
+    return 5;                       // Desktop (Original)
+}
+
 function showPage(index) {
-    const offset = -index * 100;
+    // Standard offset calculation
+    let offset = -index * 100;
+
+    // Special handling for the last page, specifically on tablets
+    const width = window.innerWidth;
+    if (width <= 1024 && width > 767 && index === totalPages - 1) {
+        // On a tablet and on the last page
+        const remainingCards = totalCards % cardsPerPage;
+
+        // Only adjust if not a full page of cards remains
+        if (remainingCards !== 0 && remainingCards !== cardsPerPage) {
+            // Calculate the maximum offset so that the last card is visible
+            // For example, with 10 cards total and 3 per page, the last page has 1 card
+            // We want to show cards 7, 8, 9 (index 6,7,8) where 9 is the last one
+            const totalCardWidth = 100 / cardsPerPage; // Width per card as percentage
+            const visibleCards = Math.min(cardsPerPage, totalCards - (index * cardsPerPage));
+            offset = -((totalCards - visibleCards) * totalCardWidth);
+        }
+    }
+
     cardsWrapper.style.transform = `translateX(${offset}%)`;
     updateArrows();
 }
@@ -35,6 +62,18 @@ prevBtn.addEventListener("click", () => {
 nextBtn.addEventListener("click", () => {
     if (currentIndex < totalPages - 1) {
         currentIndex++;
+        showPage(currentIndex);
+    }
+});
+
+// Recalculate on window resize
+window.addEventListener('resize', () => {
+    const newCardsPerPage = getCardsPerPage();
+    if (newCardsPerPage !== cardsPerPage) {
+        cardsPerPage = newCardsPerPage;
+        totalPages = Math.ceil(totalCards / cardsPerPage);
+        // Adjust currentIndex if it's now out of bounds
+        currentIndex = Math.min(currentIndex, totalPages - 1);
         showPage(currentIndex);
     }
 });
@@ -171,5 +210,5 @@ document.addEventListener("DOMContentLoaded", () => {
             currentIndex = 0;
         }
         showPage(currentIndex);
-    }, 10000);
+    }, 20000);
 });

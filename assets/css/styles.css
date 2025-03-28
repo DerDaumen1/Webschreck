@@ -914,8 +914,9 @@ body.game-page #gameContainer .card {
   }
 
   .stock-card {
-    flex: 0 0 300px;
-    margin: 0 10px;
+    flex: 0 0 32%;
+    /* 3 Karten pro Zeile für Tablets */
+    margin: 0 0.5%;
   }
 }
 
@@ -931,9 +932,12 @@ body.game-page #gameContainer .card {
   }
 
   .stock-card {
-    flex: 0 0 260px;
+    flex: 0 0 100%;
+    /* Geändert: Volle Breite für alle Handys */
     padding: 12px;
     min-height: 300px;
+    margin: 0 auto;
+    /* Zentrieren der Karte */
   }
 
   .stock-chart-container {
@@ -955,5 +959,13 @@ body.game-page #gameContainer .card {
     align-items: center;
     gap: 10px;
     border-radius: 10px;
+  }
+}
+
+/* Diese Media Query kann entfernt oder angepasst werden, da jetzt alle Handys 100% Breite haben */
+@media screen and (max-width: 480px) {
+  .stock-card {
+    min-height: 320px;
+    /* Optional: Erhöhen der Mindesthöhe für kleine Geräte */
   }
 }

@@ -85,6 +85,7 @@ $stocks = $_SESSION['all_stocks'];
 <div class="stock-overview-intro">
   <h2>Ihre Aktienübersicht</h2>
   <p>Hier sehen Sie alle verfügbaren Aktien und Ihre aktuellen Investitionen. Nutzen Sie die Pfeile, um durch die Aktien zu navigieren.</p>
+  <p class="mobile-hint" style="color: #666; font-size: 0.9rem; display: none;">Auf kleinen Bildschirmen werden weniger Aktien gleichzeitig angezeigt. Bitte blättern Sie durch alle Seiten.</p>
 </div>
 
 <!-- Verbesserter Carousel-Container mit moderneren Buttons -->
@@ -167,6 +168,14 @@ $stocks = $_SESSION['all_stocks'];
   window.currentSpielgeld = <?= json_encode($_SESSION['spielgeld'] ?? 50000); ?>;
   window.startKapital = 50000;
   window.phpStocks = <?= json_encode($stocks) ?>;
+  
+  // Zeige den Hinweis für kleine Bildschirme nur bei Bedarf an
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth <= 767) {
+      const hintElement = document.querySelector('.mobile-hint');
+      if (hintElement) hintElement.style.display = 'block';
+    }
+  });
 </script>
 
 <!-- JS-Datei für Carousel, AJAX etc. -->
