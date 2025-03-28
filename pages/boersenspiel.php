@@ -234,6 +234,12 @@ if (!isset($_SESSION['stock_history'])) {
   </div>
 </footer>
 
+<!-- Globale Variablen für JS -->
+<script>
+  window.currentSpielgeld = <?= json_encode($_SESSION['spielgeld'] ?? 50000); ?>;
+  window.startKapital = <?= json_encode($_SESSION['spielgeld'] ?? 50000); ?>;
+</script>
+
 <script>
 // Tipps-Array
 const stockTips = [

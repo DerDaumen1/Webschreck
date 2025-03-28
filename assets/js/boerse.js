@@ -787,6 +787,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Neue Funktion, um eine Börsenspiel-Session zu starten
 function startGameSession() {
+  // Startkapital zuerst aus der globalen Variable oder dem DOM-Element setzen
+  window.startKapital = window.currentSpielgeld || parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.')) || 50000;
+  console.log('Startkapital gesetzt auf:', window.startKapital);
+
   // Neues: Aktienhistorie zurücksetzen
   fetch("../includes/api.php?action=reset_history") // Pfad korrigieren
     .then(res => res.json())
@@ -796,7 +800,6 @@ function startGameSession() {
         return;
       }
       initGame();
-      window.startKapital = parseFloat(document.getElementById("spielgeldDisplay").textContent.replace(',', '.')) || 50000;
       gameSessionActive = true;
       gameTimerSeconds = 600;
       clearInterval(updateInterval);
