@@ -408,3 +408,31 @@ function startGameSession() {
       document.getElementById("meldungDisplay").textContent = "Fehler beim Zurücksetzen der Historie";
     });
 }
+
+/**
+ * Neue Funktion für die Stock-Button-Auswahl
+ * Aktualisiert das versteckte Select-Element und ruft die bestehende Logik auf
+ */
+function selectStock(buttonElement, stockId) {
+  // Alle Buttons auf inaktiv setzen
+  document.querySelectorAll('.stock-button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // Angeklickten Button aktivieren
+  buttonElement.classList.add('active');
+
+  // Verstecktes Select-Element aktualisieren
+  const stockSelect = document.getElementById('stockSelect');
+  stockSelect.value = stockId;
+
+  // Existierende Change-Event-Logik aufrufen
+  selectedStockId = parseInt(stockId);
+  consecutiveUps = 0;
+  consecutiveDowns = 0;
+  currentPhase = "";
+  updateAnzeigen();
+  drawChart();
+  updateHistoryDisplay();
+  updateStockHolding();
+}

@@ -21,8 +21,8 @@ function showPage(index) {
 }
 
 function updateArrows() {
-    prevBtn.style.backgroundColor = (currentIndex <= 0) ? "#666" : "orange";
-    nextBtn.style.backgroundColor = (currentIndex >= totalPages - 1) ? "#666" : "orange";
+    prevBtn.style.backgroundColor = (currentIndex <= 0) ? "#666" : "#3f51b5";
+    nextBtn.style.backgroundColor = (currentIndex >= totalPages - 1) ? "#666" : "#3f51b5";
 }
 
 prevBtn.addEventListener("click", () => {
@@ -39,11 +39,11 @@ nextBtn.addEventListener("click", () => {
     }
 });
 
-// --- History per AJAX laden ---
+// --- History per AJAX laden mit verbesserten visuellen Indikatoren ---
 function loadAllHistories() {
     stocks.forEach(stock => {
         const stockId = stock.id;
-        fetch("../includes/api.php?action=get_history&stock_id=" + stockId) // Pfad korrigieren
+        fetch("../includes/api.php?action=get_history&stock_id=" + stockId)
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
@@ -52,22 +52,43 @@ function loadAllHistories() {
                 }
                 const container = document.getElementById("historyContainer-" + stockId);
                 if (!container) return;
-                let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th></tr></thead><tbody>";
+
+                // HTML mit verbesserten visuellen Indikatoren erstellen
+                let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th><th>Trend</th></tr></thead><tbody>";
+
                 data.history.forEach((row, i) => {
                     let price = parseFloat(row.kurs);
-                    let arrow = "";
+                    let trendClass = "";
+                    let trendIcon = "";
+
                     if (i < data.history.length - 1) {
                         let nextPrice = parseFloat(data.history[i + 1].kurs);
                         if (price > nextPrice) {
-                            arrow = ' <span style="color:green;">&#9650;</span>';
+                            trendClass = "trend-up";
+                            trendIcon = '<i class="fas fa-arrow-up" style="color:green;"></i>';
                         } else if (price < nextPrice) {
-                            arrow = ' <span style="color:red;">&#9660;</span>';
+                            trendClass = "trend-down";
+                            trendIcon = '<i class="fas fa-arrow-down" style="color:red;"></i>';
+                        } else {
+                            trendClass = "trend-neutral";
+                            trendIcon = '<i class="fas fa-minus" style="color:gray;"></i>';
                         }
                     }
-                    html += `<tr><td>${row.tick_time}</td><td>${price.toFixed(2)} €${arrow}</td></tr>`;
+
+                    html += `<tr class="${trendClass}">
+                        <td>${row.tick_time}</td>
+                        <td>${price.toFixed(2)} €</td>
+                        <td>${trendIcon}</td>
+                    </tr>`;
                 });
+
                 html += "</tbody></table>";
                 container.innerHTML = html;
+
+                // Wenn Mini-Charts verwendet werden, aktualisieren wir diese auch
+                if (typeof updateMiniChart === 'function') {
+                    updateMiniChart(stockId, data.history);
+                }
             })
             .catch(err => console.error("Fehler beim AJAX für Aktie " + stockId, err));
     });
@@ -140,5 +161,13 @@ document.addEventListener("DOMContentLoaded", () => {
     updateArrows();
     updateCurrentValues(); // Neuer Aufruf, um den aktuellen Wert zu berechnen und anzuzeigen
 
-    // Toggle event removed because depot info is now always visible in the header.
+    // Automatisches Rotieren des Carousels alle 10 Sekunden
+    setInterval(() => {
+        if (currentIndex < totalPages - 1) {
+            currentIndex++;
+        } else {
+            currentIndex = 0;
+        }
+        showPage(currentIndex);
+    }, 10000);
 });

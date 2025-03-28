@@ -109,23 +109,67 @@ if (!isset($_SESSION['stock_history'])) {
     <!-- Kauf/Verkauf-Steuerung -->
     <div class="card" style="width: 100%;">
       <h2>Kurse & Aktionen</h2>
-      <div class="cards-container" style="justify-content: center;">
-        <div class="card" style="text-align:center; max-width: 300px;">
-          <label for="stockSelect">Aktie wählen:</label>
-          <select id="stockSelect" onchange="updateStockHolding();">
-            <option value="1">Mustermann AG</option>
-            <option value="2">Beispiel AG</option>
-            <option value="3">Test Inc.</option>
-            <option value="4">MegaCorp</option>
-            <option value="5">Future Ltd.</option>
-            <option value="6">Sample GmbH</option>
-            <option value="7">Hallo AG</option>
-            <option value="8">World Ind.</option>
-            <option value="9">Börsenspiel SE</option>
-            <option value="10">Fantasy PLC</option>
-          </select>
+      
+      <!-- Neue verbesserte Aktienauswahl -->
+      <div class="stock-selection-container">
+        <h3>Aktie wählen:</h3>
+        <div class="stock-grid">
+          <button class="stock-button active" data-stock-id="1" onclick="selectStock(this, 1)">
+            <div class="stock-icon">M</div>
+            <div class="stock-name">Mustermann AG</div>
+          </button>
+          <button class="stock-button" data-stock-id="2" onclick="selectStock(this, 2)">
+            <div class="stock-icon">B</div>
+            <div class="stock-name">Beispiel AG</div>
+          </button>
+          <button class="stock-button" data-stock-id="3" onclick="selectStock(this, 3)">
+            <div class="stock-icon">T</div>
+            <div class="stock-name">Test Inc.</div>
+          </button>
+          <button class="stock-button" data-stock-id="4" onclick="selectStock(this, 4)">
+            <div class="stock-icon">M</div>
+            <div class="stock-name">MegaCorp</div>
+          </button>
+          <button class="stock-button" data-stock-id="5" onclick="selectStock(this, 5)">
+            <div class="stock-icon">F</div>
+            <div class="stock-name">Future Ltd.</div>
+          </button>
+          <button class="stock-button" data-stock-id="6" onclick="selectStock(this, 6)">
+            <div class="stock-icon">S</div>
+            <div class="stock-name">Sample GmbH</div>
+          </button>
+          <button class="stock-button" data-stock-id="7" onclick="selectStock(this, 7)">
+            <div class="stock-icon">H</div>
+            <div class="stock-name">Hallo AG</div>
+          </button>
+          <button class="stock-button" data-stock-id="8" onclick="selectStock(this, 8)">
+            <div class="stock-icon">W</div>
+            <div class="stock-name">World Ind.</div>
+          </button>
+          <button class="stock-button" data-stock-id="9" onclick="selectStock(this, 9)">
+            <div class="stock-icon">B</div>
+            <div class="stock-name">Börsenspiel SE</div>
+          </button>
+          <button class="stock-button" data-stock-id="10" onclick="selectStock(this, 10)">
+            <div class="stock-icon">F</div>
+            <div class="stock-name">Fantasy PLC</div>
+          </button>
         </div>
       </div>
+      
+      <!-- Verstecktes Select-Element für Kompatibilität mit bestehendem JS-Code -->
+      <select id="stockSelect" style="display: none;">
+        <option value="1">Mustermann AG</option>
+        <option value="2">Beispiel AG</option>
+        <option value="3">Test Inc.</option>
+        <option value="4">MegaCorp</option>
+        <option value="5">Future Ltd.</option>
+        <option value="6">Sample GmbH</option>
+        <option value="7">Hallo AG</option>
+        <option value="8">World Ind.</option>
+        <option value="9">Börsenspiel SE</option>
+        <option value="10">Fantasy PLC</option>
+      </select>
 
       <p id="briefkursDisplay">Briefkurs: 100.00 €</p>
       <p id="geldkursDisplay">Geldkurs: 99.00 €</p>

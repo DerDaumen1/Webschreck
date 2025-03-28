@@ -20,28 +20,39 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #666;
+  background-color: #3f51b5;
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.9;
   font-size: 1.2em;
   z-index: 9999;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-btn:hover {
   opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+  background-color: #303f9f;
+}
+
+.carousel-btn:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 #prevBtn {
-  left: 1px;
+  left: 10px;
 }
 
 #nextBtn {
-  right: 1px;
+  right: 10px;
 }
 
 /* Einzelne Karten */
@@ -50,44 +61,170 @@
   /* 5 gleichzeitig, also ca. 20% minus kleine Zwischenräume */
   box-sizing: border-box;
   margin: 0 0.5%;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 10px;
-  background-color: #fafafa;
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  background-color: #fff;
   text-align: center;
-  min-height: 220px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 350px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stock-card-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 5px;
+  /* Von 15px auf 5px reduziert */
 }
 
 .stock-card h2 {
-  margin-top: 0;
-  font-size: 1rem;
+  color: #3f51b5;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
 }
 
-/* History-Container in jeder Karte */
+.stock-card h4 {
+  font-size: 0.9rem;
+  /* Von 1rem auf 0.9rem reduziert */
+  font-weight: 600;
+  color: #555;
+  margin: 3px 0 2px 0;
+  /* Oberseite auf 3px und Unterseite auf 2px reduziert */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stock-card h4 i {
+  margin-right: 5px;
+  color: #3f51b5;
+}
+
+/* Stats innerhalb der Karten */
+.stock-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 8px;
+  /* Von 15px auf 8px reduziert */
+  flex-wrap: wrap;
+}
+
+.stock-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+}
+
+.stat-label i {
+  margin-right: 4px;
+  color: #3f51b5;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Container für das Mini-Chart */
+.stock-chart-container {
+  width: 100%;
+  height: 90px;
+  /* Von 120px auf 90px reduziert */
+  margin: 3px 0;
+  /* Von 5px auf 3px reduziert */
+  position: relative;
+}
+
+/* Aktionen-Bereich am Ende der Karte */
+.stock-actions {
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.action-btn {
+  padding: 8px 15px;
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.action-btn i {
+  margin-right: 5px;
+}
+
+.action-btn:hover {
+  background-color: #303f9f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.buy-btn {
+  background-color: #4caf50;
+}
+
+.buy-btn:hover {
+  background-color: #388e3c;
+}
+
+/* Verbesserte Historientabelle - Scrollfunktion entfernt */
 .history-container {
-  margin-top: 10px;
+  margin-top: 2px;
+  /* Von 10px auf 2px reduziert */
   overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #eee;
+  /* max-height Eigenschaft entfernt */
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9em;
+  font-size: 0.75em;
+  /* Von 0.85em auf 0.75em reduziert */
 }
 
 .history-table th,
 .history-table td {
-  border: 1px solid #ccc;
-  padding: 6px 8px;
+  padding: 3px 4px;
+  /* Von 8px 10px auf 3px 4px reduziert */
   text-align: center;
+  border: none;
 }
 
-.history-table th {
-  background-color: #f8f8f8;
+/* Kompaktere Versionen für die Trendanzeige */
+.history-table td:last-child {
+  padding-left: 0;
+  padding-right: 0;
+  width: 20px;
 }
-
-
 
 /* Basis-Styles */
 body {
@@ -575,4 +712,247 @@ body.game-page #gameContainer .card {
 .profit-negative {
   color: red;
   /* weitere Styles falls gewünscht... */
+}
+
+/* Neue CSS-Regeln für verschönerte Aktienauswahl */
+.stock-selection-container {
+  margin-bottom: 1.5rem;
+}
+
+.stock-selection-container h3 {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.stock-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.stock-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 5px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.stock-button:hover {
+  background-color: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stock-button.active {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+}
+
+.stock-icon {
+  width: 30px;
+  height: 30px;
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.stock-button.active .stock-icon {
+  background-color: white;
+  color: #0d6efd;
+}
+
+.stock-name {
+  font-size: 0.85rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Responsive Anpassungen für die Aktiengrid */
+@media screen and (max-width: 768px) {
+  .stock-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .stock-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Verbesserte Styles für die Aktienübersicht */
+.stock-overview-intro {
+  text-align: center;
+  margin: 20px auto;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.stock-overview-intro h2 {
+  color: #3f51b5;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.stock-overview-intro p {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Portfolio-Zusammenfassung im Header */
+.portfolio-summary {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.portfolio-summary h3 {
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portfolio-summary h3 i {
+  margin-left: 8px;
+}
+
+.portfolio-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.portfolio-stats .stat-item {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.portfolio-stats .stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+}
+
+.portfolio-stats .stat-value {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Legende für Farbkodierung */
+.stock-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px auto;
+  max-width: 600px;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.color-square {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  margin-right: 5px;
+}
+
+.color-square.up {
+  background-color: rgba(75, 192, 192, 0.7);
+}
+
+.color-square.down {
+  background-color: rgba(255, 99, 132, 0.7);
+}
+
+.color-square.neutral {
+  background-color: rgba(128, 128, 128, 0.7);
+}
+
+/* Responsive Designs für Aktienübersicht */
+@media screen and (max-width: 1024px) {
+  .portfolio-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .carousel-container {
+    width: 95%;
+  }
+
+  .stock-card {
+    flex: 0 0 300px;
+    margin: 0 10px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .portfolio-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .carousel-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .stock-card {
+    flex: 0 0 260px;
+    padding: 12px;
+    min-height: 300px;
+  }
+
+  .stock-chart-container {
+    height: 100px;
+  }
+
+  .stock-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  .action-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .stock-legend {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+  }
 }
