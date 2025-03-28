@@ -149,10 +149,10 @@
 /* Container für das Mini-Chart */
 .stock-chart-container {
   width: 100%;
-  height: 90px;
-  /* Von 120px auf 90px reduziert */
-  margin: 3px 0;
-  /* Von 5px auf 3px reduziert */
+  height: 120px;
+  /* Zurück auf 120px erhöht */
+  margin: 5px 0;
+  /* Zurück auf 5px erhöht */
   position: relative;
 }
 
@@ -194,27 +194,28 @@
   background-color: #388e3c;
 }
 
-/* Verbesserte Historientabelle - Scrollfunktion entfernt */
+/* Verbesserte Historientabelle - Scrollfunktion wieder hinzugefügt */
 .history-container {
-  margin-top: 2px;
-  /* Von 10px auf 2px reduziert */
+  margin-top: 10px;
   overflow-x: auto;
   border-radius: 6px;
   border: 1px solid #eee;
-  /* max-height Eigenschaft entfernt */
+  max-height: 160px;
+  /* Reduced from 200px to show fewer rows */
+  overflow-y: auto;
 }
 
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.75em;
-  /* Von 0.85em auf 0.75em reduziert */
+  font-size: 0.95em;
+  /* Increased from 0.75em to make text larger */
 }
 
 .history-table th,
 .history-table td {
-  padding: 3px 4px;
-  /* Von 8px 10px auf 3px 4px reduziert */
+  padding: 8px 10px;
+  /* Increased from 3px 4px to make cells taller */
   text-align: center;
   border: none;
 }
