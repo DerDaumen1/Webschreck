@@ -56,19 +56,21 @@ function loadAllHistories() {
                 // HTML mit verbesserten visuellen Indikatoren erstellen
                 let html = "<table class='history-table'><thead><tr><th>Datum</th><th>Kurs</th><th>Trend</th></tr></thead><tbody>";
 
+                // Die history kommt vom Server mit neuestem Datum zuerst (ORDER BY tick_time DESC)
                 data.history.forEach((row, i) => {
                     let price = parseFloat(row.kurs);
                     let trendClass = "";
                     let trendIcon = "";
 
-                    if (i < data.history.length - 1) {
-                        let nextPrice = parseFloat(data.history[i + 1].kurs);
-                        if (price > nextPrice) {
-                            trendClass = "trend-up";
-                            trendIcon = '<i class="fas fa-arrow-up" style="color:green;"></i>';
-                        } else if (price < nextPrice) {
-                            trendClass = "trend-down";
+                    // Vergleich mit dem neueren Eintrag (i-1) statt mit dem älteren (i+1)
+                    if (i > 0) {
+                        let newerPrice = parseFloat(data.history[i - 1].kurs);
+                        if (price > newerPrice) {
+                            trendClass = "trend-down"; // Kurs ist gefallen (neuerer Kurs ist niedriger)
                             trendIcon = '<i class="fas fa-arrow-down" style="color:red;"></i>';
+                        } else if (price < newerPrice) {
+                            trendClass = "trend-up"; // Kurs ist gestiegen (neuerer Kurs ist höher)
+                            trendIcon = '<i class="fas fa-arrow-up" style="color:green;"></i>';
                         } else {
                             trendClass = "trend-neutral";
                             trendIcon = '<i class="fas fa-minus" style="color:gray;"></i>';

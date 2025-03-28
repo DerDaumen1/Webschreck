@@ -45,20 +45,20 @@ function fetchStockData(stockId) {
 // Bereitet die Kursdaten für das Chart vor
 function prepareChartData(historyData) {
     // History-Daten sind in umgekehrter Reihenfolge (neueste zuerst)
-    // Für ein Chart müssen wir sie umdrehen
+    // Für ein Chart müssen wir sie umdrehen, damit älteste Daten links und neueste rechts stehen
     const reversedData = [...historyData].reverse();
 
     // Daten extrahieren
     const labels = reversedData.map(item => item.tick_time);
     const prices = reversedData.map(item => parseFloat(item.kurs));
 
-    // Gradient-Farbe basierend auf Kursverlauf
+    // Gradient-Farbe basierend auf Kursverlauf (vergleicht erstes/ältestes mit letztem/neuestem)
     let backgroundColor = chartConfig.neutralColor;
     if (prices.length > 1) {
         if (prices[prices.length - 1] > prices[0]) {
-            backgroundColor = chartConfig.positiveColor;
+            backgroundColor = chartConfig.positiveColor; // Neuester Kurs höher als ältester = positiv
         } else if (prices[prices.length - 1] < prices[0]) {
-            backgroundColor = chartConfig.negativeColor;
+            backgroundColor = chartConfig.negativeColor; // Neuester Kurs niedriger als ältester = negativ
         }
     }
 
