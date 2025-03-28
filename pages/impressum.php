@@ -9,7 +9,7 @@
 <header>
   <div class="header-container">
     <div class="nav-left">
-      <a href="index.php">Startseite</a>
+      <a href="../index.php">Startseite</a>
       <a href="boersenspiel.php">Börsenspiel</a>
     </div>
     <div class="header-center">
